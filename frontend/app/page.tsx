@@ -141,9 +141,10 @@ export default function HomePage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <div className="text-xl text-gray-600 dark:text-gray-400">
-          Đang tải...
+      <div className="min-h-screen flex items-center justify-center gradient-dark gradient-mesh">
+        <div className="flex flex-col items-center gap-4">
+          <div className="spinner"></div>
+          <div className="text-xl text-white/80">Đang tải...</div>
         </div>
       </div>
     );
@@ -154,41 +155,56 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen gradient-dark gradient-mesh">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow">
+      <header className="glass-dark sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">
-            Quản lý chi tiêu
-          </h1>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-600 dark:text-gray-400">
-              Số dư:{" "}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center">
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h1 className="text-xl font-bold text-white">Quản lý chi tiêu</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="glass px-4 py-2 rounded-xl">
+              <span className="text-white/70 text-sm">Số dư: </span>
               <span
                 className={`font-bold ${
                   (user?.currentBalance || 0) >= 0
-                    ? "text-green-600"
-                    : "text-red-600"
+                    ? "text-green-400"
+                    : "text-red-400"
                 }`}
               >
                 {formatCurrency(user?.currentBalance || 0)}
               </span>
-            </span>
+            </div>
             <Link
               href="/statistics"
-              className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+              className="gradient-primary text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
             >
-              Thống kê
+              📊 Thống kê
             </Link>
             <Link
               href="/profile"
-              className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white transition-colors"
+              className="glass text-white px-4 py-2 rounded-xl hover:bg-white/20 transition-all"
             >
-              Tài khoản
+              👤 Tài khoản
             </Link>
             <button
               onClick={logout}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+              className="gradient-danger text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
             >
               Đăng xuất
             </button>
@@ -196,16 +212,33 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-6 animate-fadeIn">
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-            <button
-              onClick={() => setError("")}
-              className="float-right font-bold"
-            >
-              ×
-            </button>
+          <div className="glass border border-red-500/50 text-red-400 px-4 py-3 rounded-xl mb-4 animate-scaleIn">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                {error}
+              </div>
+              <button
+                onClick={() => setError("")}
+                className="text-red-400 hover:text-red-300 font-bold text-xl"
+              >
+                ×
+              </button>
+            </div>
           </div>
         )}
 
@@ -213,26 +246,65 @@ export default function HomePage() {
         <div className="flex gap-4 mb-6">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            className="gradient-info text-white px-6 py-3 rounded-xl hover-lift btn-gradient font-semibold transition-all flex items-center gap-2"
           >
-            + Thêm giao dịch
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+            Thêm giao dịch
           </button>
           <button
             onClick={() => setShowCategoryModal(true)}
-            className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
+            className="gradient-success text-white px-6 py-3 rounded-xl hover-lift btn-gradient font-semibold transition-all flex items-center gap-2"
           >
-            + Thêm danh mục
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+              />
+            </svg>
+            Thêm danh mục
           </button>
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-6">
-          <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
+        <div className="glass p-5 rounded-2xl mb-6 hover-scale transition-all">
+          <h2 className="text-lg font-semibold mb-4 text-white flex items-center gap-2">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+              />
+            </svg>
             Bộ lọc
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-white/70 mb-2">
                 Từ ngày
               </label>
               <input
@@ -241,22 +313,22 @@ export default function HomePage() {
                 onChange={(e) =>
                   handleFilterChange("startDate", e.target.value)
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white transition-all hover:bg-white/15"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-white/70 mb-2">
                 Đến ngày
               </label>
               <input
                 type="date"
                 value={filters.endDate || ""}
                 onChange={(e) => handleFilterChange("endDate", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white transition-all hover:bg-white/15"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-white/70 mb-2">
                 Loại
               </label>
               <select
@@ -267,15 +339,21 @@ export default function HomePage() {
                     e.target.value as "in" | "out" | "",
                   )
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white transition-all hover:bg-white/15"
               >
-                <option value="">Tất cả</option>
-                <option value="in">Thu</option>
-                <option value="out">Chi</option>
+                <option value="" className="bg-gray-800">
+                  Tất cả
+                </option>
+                <option value="in" className="bg-gray-800">
+                  Thu
+                </option>
+                <option value="out" className="bg-gray-800">
+                  Chi
+                </option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-white/70 mb-2">
                 Danh mục
               </label>
               <select
@@ -283,11 +361,13 @@ export default function HomePage() {
                 onChange={(e) =>
                   handleFilterChange("categoryId", e.target.value)
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white transition-all hover:bg-white/15"
               >
-                <option value="">Tất cả</option>
+                <option value="" className="bg-gray-800">
+                  Tất cả
+                </option>
                 {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>
+                  <option key={cat._id} value={cat._id} className="bg-gray-800">
                     {cat.name} ({cat.type === "in" ? "Thu" : "Chi"})
                   </option>
                 ))}
@@ -297,80 +377,98 @@ export default function HomePage() {
         </div>
 
         {/* Transactions Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div className="glass rounded-2xl overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-700">
+            <thead className="bg-white/5">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/70 uppercase tracking-wider">
                   Ngày
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/70 uppercase tracking-wider">
                   Danh mục
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/70 uppercase tracking-wider">
                   Loại
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/70 uppercase tracking-wider">
                   Số tiền
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/70 uppercase tracking-wider">
                   Ghi chú
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-white/70 uppercase tracking-wider">
                   Hành động
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-white/10">
               {transactions.length === 0 ? (
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                    className="px-6 py-12 text-center text-white/50"
                   >
-                    Chưa có giao dịch nào
+                    <div className="flex flex-col items-center gap-3">
+                      <svg
+                        className="w-12 h-12 text-white/30"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                        />
+                      </svg>
+                      Chưa có giao dịch nào
+                    </div>
                   </td>
                 </tr>
               ) : (
-                transactions.map((transaction) => (
+                transactions.map((transaction, index) => (
                   <tr
                     key={transaction._id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="table-row-hover hover:bg-white/5"
+                    style={{ animationDelay: `${index * 0.05}s` }}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                       {formatDate(transaction.transactionDate)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                       {transaction.categoryId?.name || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 text-xs rounded-full ${
+                        className={`px-3 py-1 text-xs font-medium rounded-full ${
                           transaction.categoryId?.type === "in"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
+                            ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                            : "bg-red-500/20 text-red-400 border border-red-500/30"
                         }`}
                       >
-                        {transaction.categoryId?.type === "in" ? "Thu" : "Chi"}
+                        {transaction.categoryId?.type === "in"
+                          ? "↑ Thu"
+                          : "↓ Chi"}
                       </span>
                     </td>
                     <td
-                      className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
+                      className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${
                         transaction.categoryId?.type === "in"
-                          ? "text-green-600"
-                          : "text-red-600"
+                          ? "text-green-400"
+                          : "text-red-400"
                       }`}
                     >
                       {transaction.categoryId?.type === "in" ? "+" : "-"}
                       {formatCurrency(transaction.amount)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
+                    <td className="px-6 py-4 text-sm text-white/60 max-w-xs truncate">
                       {transaction.note || "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <button
                         onClick={() => handleDeleteTransaction(transaction._id)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/20 px-3 py-1 rounded-lg transition-all"
                       >
                         Xóa
                       </button>
@@ -383,8 +481,8 @@ export default function HomePage() {
 
           {/* Pagination */}
           {pagination.totalPages > 1 && (
-            <div className="px-6 py-4 flex justify-between items-center border-t border-gray-200 dark:border-gray-700">
-              <span className="text-sm text-gray-700 dark:text-gray-300">
+            <div className="px-6 py-4 flex justify-between items-center border-t border-white/10">
+              <span className="text-sm text-white/70">
                 Trang {pagination.page} / {pagination.totalPages} (
                 {pagination.total} giao dịch)
               </span>
@@ -397,9 +495,9 @@ export default function HomePage() {
                     }))
                   }
                   disabled={pagination.page <= 1}
-                  className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white"
+                  className="px-4 py-2 glass rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/20 text-white transition-all"
                 >
-                  Trước
+                  ← Trước
                 </button>
                 <button
                   onClick={() =>
@@ -409,9 +507,9 @@ export default function HomePage() {
                     }))
                   }
                   disabled={pagination.page >= pagination.totalPages}
-                  className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white"
+                  className="px-4 py-2 glass rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/20 text-white transition-all"
                 >
-                  Sau
+                  Sau →
                 </button>
               </div>
             </div>
@@ -421,14 +519,29 @@ export default function HomePage() {
 
       {/* Create Transaction Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 animate-fadeIn">
+          <div className="glass-card p-6 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn">
+            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
+              <div className="w-8 h-8 gradient-info rounded-lg flex items-center justify-center">
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+              </div>
               Thêm giao dịch mới
             </h2>
-            <form onSubmit={handleCreateTransaction}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <form onSubmit={handleCreateTransaction} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Danh mục
                 </label>
                 <select
@@ -439,7 +552,7 @@ export default function HomePage() {
                       categoryId: e.target.value,
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
                   required
                 >
                   <option value="">Chọn danh mục</option>
@@ -450,8 +563,8 @@ export default function HomePage() {
                   ))}
                 </select>
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Số tiền
                 </label>
                 <input
@@ -463,13 +576,14 @@ export default function HomePage() {
                       amount: e.target.value,
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
                   min="1"
+                  placeholder="Nhập số tiền"
                   required
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Ngày giao dịch
                 </label>
                 <input
@@ -481,12 +595,12 @@ export default function HomePage() {
                       transactionDate: e.target.value,
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
                   required
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Ghi chú
                 </label>
                 <textarea
@@ -497,21 +611,22 @@ export default function HomePage() {
                       note: e.target.value,
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
                   rows={3}
+                  placeholder="Nhập ghi chú (tùy chọn)"
                 />
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+                  className="flex-1 gradient-info text-white py-3 px-4 rounded-xl font-semibold hover-lift btn-gradient transition-all"
                 >
-                  Thêm
+                  Thêm giao dịch
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+                  className="flex-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white py-3 px-4 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-all"
                 >
                   Hủy
                 </button>
@@ -523,14 +638,29 @@ export default function HomePage() {
 
       {/* Create Category Modal */}
       {showCategoryModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 animate-fadeIn">
+          <div className="glass-card p-6 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn">
+            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
+              <div className="w-8 h-8 gradient-success rounded-lg flex items-center justify-center">
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                  />
+                </svg>
+              </div>
               Thêm danh mục mới
             </h2>
-            <form onSubmit={handleCreateCategory}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <form onSubmit={handleCreateCategory} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Tên danh mục
                 </label>
                 <input
@@ -542,39 +672,55 @@ export default function HomePage() {
                       name: e.target.value,
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700/50 dark:text-white transition-all"
+                  placeholder="Ví dụ: Ăn uống, Lương..."
                   required
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Loại
                 </label>
-                <select
-                  value={newCategory.type}
-                  onChange={(e) =>
-                    setNewCategory((prev) => ({
-                      ...prev,
-                      type: e.target.value as "in" | "out",
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value="in">Thu</option>
-                  <option value="out">Chi</option>
-                </select>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setNewCategory((prev) => ({ ...prev, type: "in" }))
+                    }
+                    className={`py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                      newCategory.type === "in"
+                        ? "gradient-success text-white"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    <span>↑</span> Thu nhập
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setNewCategory((prev) => ({ ...prev, type: "out" }))
+                    }
+                    className={`py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                      newCategory.type === "out"
+                        ? "gradient-danger text-white"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    <span>↓</span> Chi tiêu
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors"
+                  className="flex-1 gradient-success text-white py-3 px-4 rounded-xl font-semibold hover-lift btn-gradient transition-all"
                 >
-                  Thêm
+                  Thêm danh mục
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCategoryModal(false)}
-                  className="flex-1 bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors"
+                  className="flex-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white py-3 px-4 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-all"
                 >
                   Hủy
                 </button>

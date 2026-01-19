@@ -30,60 +30,163 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">
-          Đăng nhập
+    <div className="min-h-screen flex items-center justify-center gradient-dark gradient-mesh relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float"></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"
+          style={{ animationDelay: "2s" }}
+        ></div>
+      </div>
+
+      <div className="glass-card p-8 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn relative z-10">
+        {/* Logo/Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center animate-pulse-glow">
+            <svg
+              className="w-8 h-8 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+        </div>
+
+        <h1 className="text-3xl font-bold text-center mb-2 text-gray-800 dark:text-white">
+          Chào mừng trở lại
         </h1>
+        <p className="text-center text-gray-500 dark:text-gray-400 mb-6">
+          Đăng nhập để quản lý chi tiêu của bạn
+        </p>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+          <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 rounded-xl mb-4 animate-fadeIn">
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              {error}
+            </div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="animate-fadeIn stagger-1" style={{ opacity: 0 }}>
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
               Tên đăng nhập
             </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              required
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </span>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700/50 dark:text-white transition-all duration-300 hover:border-purple-300"
+                placeholder="Nhập tên đăng nhập"
+                required
+              />
+            </div>
           </div>
 
-          <div className="mb-6">
-            <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+          <div className="animate-fadeIn stagger-2" style={{ opacity: 0 }}>
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
               Mật khẩu
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              required
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+              </span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700/50 dark:text-white transition-all duration-300 hover:border-purple-300"
+                placeholder="Nhập mật khẩu"
+                required
+              />
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-          </button>
+          <div className="animate-fadeIn stagger-3" style={{ opacity: 0 }}>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full gradient-primary text-white py-3 px-4 rounded-xl font-semibold hover-lift btn-gradient disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition-all duration-300"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Đang đăng nhập...
+                </div>
+              ) : (
+                "Đăng nhập"
+              )}
+            </button>
+          </div>
         </form>
 
-        <p className="mt-4 text-center text-gray-600 dark:text-gray-400">
-          Chưa có tài khoản?{" "}
-          <Link href="/register" className="text-blue-500 hover:underline">
-            Đăng ký ngay
-          </Link>
-        </p>
+        <div
+          className="mt-6 text-center animate-fadeIn stagger-4"
+          style={{ opacity: 0 }}
+        >
+          <p className="text-gray-600 dark:text-gray-400">
+            Chưa có tài khoản?{" "}
+            <Link
+              href="/register"
+              className="text-purple-500 hover:text-purple-600 font-semibold transition-colors"
+            >
+              Đăng ký ngay
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
