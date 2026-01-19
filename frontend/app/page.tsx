@@ -175,6 +175,12 @@ export default function HomePage() {
               </span>
             </span>
             <Link
+              href="/statistics"
+              className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+            >
+              Thống kê
+            </Link>
+            <Link
               href="/profile"
               className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white transition-colors"
             >

@@ -92,6 +92,15 @@ export const api = {
 
   deleteTransaction: (id: string) =>
     request<{ message: string }>(`/transactions/${id}`, { method: "DELETE" }),
+
+  // Statistics
+  getStatistics: (params?: { year?: number; period?: "week" | "month" }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.year) searchParams.append("year", params.year.toString());
+    if (params?.period) searchParams.append("period", params.period);
+    const queryString = searchParams.toString();
+    return request<StatisticsResponse>(`/statistics${queryString ? `?${queryString}` : ""}`);
+  },
 };
 
 // Types
@@ -143,4 +152,28 @@ export interface CreateTransactionData {
   amount: number;
   note?: string;
   transactionDate: string;
+}
+
+export interface TimeSeriesDataPoint {
+  label: string;
+  income: number;
+  expense: number;
+}
+
+export interface CategoryDataPoint {
+  name: string;
+  value: number;
+}
+
+export interface StatisticsResponse {
+  year: number;
+  period: "week" | "month";
+  timeSeriesData: TimeSeriesDataPoint[];
+  categoryIncomeData: CategoryDataPoint[];
+  categoryExpenseData: CategoryDataPoint[];
+  summary: {
+    totalIncome: number;
+    totalExpense: number;
+    balance: number;
+  };
 }
