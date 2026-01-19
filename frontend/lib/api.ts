@@ -163,6 +163,7 @@ export interface TimeSeriesDataPoint {
 export interface CategoryDataPoint {
   name: string;
   value: number;
+  [key: string]: string | number;
 }
 
 export interface StatisticsResponse {
