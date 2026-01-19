@@ -73,8 +73,11 @@ export default function StatisticsPage() {
     }).format(amount);
   };
 
-  const formatTooltipValue = (value: number) => {
-    return formatCurrency(value);
+  const formatTooltipValue = (value: number | string | undefined): string => {
+    if (typeof value === 'number') {
+      return formatCurrency(value);
+    }
+    return String(value || 0);
   };
 
   // Generate year options (last 5 years)
