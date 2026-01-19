@@ -74,7 +74,7 @@ export default function StatisticsPage() {
   };
 
   const formatTooltipValue = (value: number | string | undefined): string => {
-    if (typeof value === 'number') {
+    if (typeof value === "number") {
       return formatCurrency(value);
     }
     return String(value || 0);
