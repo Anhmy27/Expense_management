@@ -11,8 +11,8 @@ router.get("/", authMiddleware, async (req, res) => {
     const { year, period = "month" } = req.query;
     const selectedYear = parseInt(year) || new Date().getFullYear();
 
-    // Lấy tất cả categories của user
-    const categories = await Category.find();
+    // Lấy tất cả categories của user hiện tại
+    const categories = await Category.find({ userId: req.user.userId });
     const inCategories = categories.filter((c) => c.type === "in");
     const outCategories = categories.filter((c) => c.type === "out");
 
@@ -22,7 +22,7 @@ router.get("/", authMiddleware, async (req, res) => {
 
     // Lấy tất cả giao dịch trong năm
     const transactions = await Transaction.find({
-      userId: req.userId,
+      userId: req.user.userId,
       transactionDate: { $gte: startOfYear, $lte: endOfYear },
     }).populate("categoryId", "name type");
 

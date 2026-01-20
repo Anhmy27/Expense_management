@@ -8,7 +8,7 @@ const router = express.Router();
 // Lấy thông tin user
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("-password");
+    const user = await User.findById(req.user.userId).select("-password");
     if (!user) {
       return res.status(404).json({ message: "Không tìm thấy người dùng" });
     }
@@ -32,7 +32,7 @@ router.put("/change-password", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Mật khẩu mới phải có ít nhất 6 ký tự" });
     }
 
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.user.userId);
     if (!user) {
       return res.status(404).json({ message: "Không tìm thấy người dùng" });
     }

@@ -4,11 +4,11 @@ import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Lấy tất cả categories
+// Lấy tất cả categories của user hiện tại
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const { type } = req.query;
-    const filter = {};
+    const filter = { userId: req.user.userId };
     
     if (type && ["in", "out"].includes(type)) {
       filter.type = type;
@@ -25,22 +25,38 @@ router.get("/", authMiddleware, async (req, res) => {
 // Tạo category mới
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { name, type } = req.body;
+    let { name, type } = req.body;
 
     if (!name || !type) {
       return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin" });
+    }
+
+    // Trim khoảng trắng thừa
+    name = name.trim();
+
+    if (!name) {
+      return res.status(400).json({ message: "Tên category không được để trống" });
     }
 
     if (!["in", "out"].includes(type)) {
       return res.status(400).json({ message: "Loại category không hợp lệ" });
     }
 
-    const existingCategory = await Category.findOne({ name, type });
+    // Kiểm tra category đã tồn tại cho user này chưa (case-insensitive)
+    const existingCategory = await Category.findOne({ 
+      userId: req.user.userId,
+      name: { $regex: new RegExp(`^${name}$`, 'i') },
+      type 
+    });
     if (existingCategory) {
       return res.status(400).json({ message: "Category đã tồn tại" });
     }
 
-    const category = new Category({ name, type });
+    const category = new Category({ 
+      userId: req.user.userId,
+      name, 
+      type 
+    });
     await category.save();
 
     res.status(201).json(category);

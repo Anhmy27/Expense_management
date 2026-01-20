@@ -11,7 +11,7 @@ router.get("/", authMiddleware, async (req, res) => {
   try {
     const { startDate, endDate, categoryId, type, page = 1, limit = 20 } = req.query;
     
-    const filter = { userId: req.userId };
+    const filter = { userId: req.user.userId };
 
     // Lọc theo khoảng thời gian
     if (startDate || endDate) {
@@ -31,7 +31,10 @@ router.get("/", authMiddleware, async (req, res) => {
 
     // Lọc theo type (in/out)
     if (type && ["in", "out"].includes(type)) {
-      const categoryIds = await Category.find({ type }).distinct("_id");
+      const categoryIds = await Category.find({ 
+        userId: req.user.userId,
+        type 
+      }).distinct("_id");
       filter.categoryId = { $in: categoryIds };
     }
 
@@ -74,13 +77,17 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Số tiền phải lớn hơn 0" });
     }
 
-    const category = await Category.findById(categoryId);
+    // Kiểm tra category tồn tại và thuộc về user
+    const category = await Category.findOne({ 
+      _id: categoryId,
+      userId: req.user.userId 
+    });
     if (!category) {
-      return res.status(404).json({ message: "Không tìm thấy category" });
+      return res.status(404).json({ message: "Không tìm thấy category hoặc bạn không có quyền sử dụng" });
     }
 
     const transaction = new Transaction({
-      userId: req.userId,
+      userId: req.user.userId,
       categoryId,
       amount,
       note,
@@ -91,7 +98,7 @@ router.post("/", authMiddleware, async (req, res) => {
 
     // Cập nhật số dư
     const balanceChange = category.type === "in" ? amount : -amount;
-    await User.findByIdAndUpdate(req.userId, {
+    await User.findByIdAndUpdate(req.user.userId, {
       $inc: { currentBalance: balanceChange },
     });
 
@@ -110,7 +117,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     const transaction = await Transaction.findOne({
       _id: req.params.id,
-      userId: req.userId,
+      userId: req.user.userId,
     }).populate("categoryId");
 
     if (!transaction) {
@@ -122,7 +129,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       ? -transaction.amount 
       : transaction.amount;
     
-    await User.findByIdAndUpdate(req.userId, {
+    await User.findByIdAndUpdate(req.user.userId, {
       $inc: { currentBalance: balanceChange },
     });
 
