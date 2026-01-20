@@ -40,6 +40,7 @@ export default function StatisticsPage() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
 
   const [loading, setLoading] = useState(true);
+  const [fetching, setFetching] = useState(false); // Loading khi thay đổi filter
   const [error, setError] = useState("");
   const [statistics, setStatistics] = useState<StatisticsResponse | null>(null);
 
@@ -50,15 +51,22 @@ export default function StatisticsPage() {
 
   const fetchStatistics = useCallback(async () => {
     try {
-      setLoading(true);
+      const isInitialLoad = !statistics;
+      if (isInitialLoad) {
+        setLoading(true);
+      } else {
+        setFetching(true);
+      }
+
       const data = await api.getStatistics({ year, period });
       setStatistics(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
     } finally {
       setLoading(false);
+      setFetching(false);
     }
-  }, [year, period]);
+  }, [year, period, statistics]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -185,7 +193,14 @@ export default function StatisticsPage() {
         )}
 
         {/* Filters */}
-        <div className="glass p-5 rounded-2xl mb-6">
+        <div
+          className={`glass p-5 rounded-2xl mb-6 relative transition-opacity duration-200 ${fetching ? "opacity-60" : "opacity-100"}`}
+        >
+          {fetching && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-10 rounded-2xl">
+              <div className="spinner"></div>
+            </div>
+          )}
           <div className="flex flex-wrap gap-4 items-end">
             <div>
               <label className="block text-sm font-medium text-white/70 mb-2">
