@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/useAuth";
 import {
@@ -18,6 +18,7 @@ export default function HomePage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetching, setFetching] = useState(false); // Loading khi filter
   const [error, setError] = useState("");
 
   // Filters
@@ -50,9 +51,18 @@ export default function HomePage() {
     type: "out" as "in" | "out",
   });
 
+  // Debounce timer for date inputs
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
+      const isInitialLoad = transactions.length === 0;
+      if (isInitialLoad) {
+        setLoading(true);
+      } else {
+        setFetching(true);
+      }
+      
       const [userRes, transRes, catRes] = await Promise.all([
         api.getProfile(),
         api.getTransactions(filters),
@@ -66,12 +76,26 @@ export default function HomePage() {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
     } finally {
       setLoading(false);
+      setFetching(false);
     }
-  }, [filters]);
+  }, [filters, transactions.length]);
 
   useEffect(() => {
     if (isAuthenticated) {
-      fetchData();
+      // Debounce 500ms cho tất cả filter changes
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      
+      debounceTimer.current = setTimeout(() => {
+        fetchData();
+      }, 300);
+      
+      return () => {
+        if (debounceTimer.current) {
+          clearTimeout(debounceTimer.current);
+        }
+      };
     }
   }, [isAuthenticated, fetchData]);
 
@@ -121,11 +145,21 @@ export default function HomePage() {
   };
 
   const handleFilterChange = (key: keyof TransactionFilters, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
+    const newFilters = {
+      ...filters,
       [key]: value || undefined,
       page: 1,
-    }));
+    };
+    
+    setFilters(newFilters);
+    
+    // Debounce cho date inputs (chờ 500ms sau khi user ngừng nhập)
+    if (key === "startDate" || key === "endDate") {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      // Không cần làm gì, useEffect sẽ tự trigger
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -377,7 +411,12 @@ export default function HomePage() {
         </div>
 
         {/* Transactions Table */}
-        <div className="glass rounded-2xl overflow-hidden">
+        <div className={`glass rounded-2xl overflow-hidden relative transition-opacity duration-200 ${fetching ? 'opacity-60' : 'opacity-100'}`}>
+          {fetching && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-10 rounded-2xl">
+              <div className="spinner"></div>
+            </div>
+          )}
           <table className="w-full">
             <thead className="bg-white/5">
               <tr>
