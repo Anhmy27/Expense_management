@@ -8,7 +8,7 @@ const router = express.Router();
 // Đăng ký
 router.post("/register", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    let { username, password } = req.body;
 
     if (!username || !password) {
       return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin" });
@@ -18,7 +18,13 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Mật khẩu phải có ít nhất 6 ký tự" });
     }
 
-    const existingUser = await User.findOne({ username });
+    // Chuyển username về lowercase để không phân biệt hoa thường
+    username = username.trim().toLowerCase();
+
+    // Kiểm tra username đã tồn tại (case-insensitive)
+    const existingUser = await User.findOne({ 
+      username: { $regex: new RegExp(`^${username}$`, 'i') }
+    });
     if (existingUser) {
       return res.status(400).json({ message: "Tên đăng nhập đã tồn tại" });
     }
@@ -53,13 +59,19 @@ router.post("/register", async (req, res) => {
 // Đăng nhập
 router.post("/login", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    let { username, password } = req.body;
 
     if (!username || !password) {
       return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin" });
     }
 
-    const user = await User.findOne({ username });
+    // Chuyển username về lowercase
+    username = username.trim().toLowerCase();
+
+    // Tìm user (case-insensitive)
+    const user = await User.findOne({ 
+      username: { $regex: new RegExp(`^${username}$`, 'i') }
+    });
     if (!user) {
       return res.status(400).json({ message: "Tên đăng nhập hoặc mật khẩu không đúng" });
     }
