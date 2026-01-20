@@ -50,21 +50,21 @@ export default function StatisticsPage() {
 
   const fetchStatistics = useCallback(async () => {
     try {
-      const isInitialLoad = !statistics;
-      if (isInitialLoad) {
-        setLoading(true);
+      if (loading) {
+        // Initial load - keep loading spinner
+        const data = await api.getStatistics({ year, period });
+        setStatistics(data);
+        setLoading(false);
+      } else {
+        // Filter change - silent update
+        const data = await api.getStatistics({ year, period });
+        setStatistics(data);
       }
-
-      const data = await api.getStatistics({ year, period });
-      setStatistics(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
-    } finally {
-      if (isInitialLoad) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }, [year, period, statistics]);
+  }, [year, period, loading]);
 
   useEffect(() => {
     if (isAuthenticated) {
