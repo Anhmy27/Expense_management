@@ -62,7 +62,7 @@ export default function HomePage() {
       } else {
         setFetching(true);
       }
-      
+
       const [userRes, transRes, catRes] = await Promise.all([
         api.getProfile(),
         api.getTransactions(filters),
@@ -86,11 +86,11 @@ export default function HomePage() {
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
-      
+
       debounceTimer.current = setTimeout(() => {
         fetchData();
       }, 300);
-      
+
       return () => {
         if (debounceTimer.current) {
           clearTimeout(debounceTimer.current);
@@ -150,9 +150,9 @@ export default function HomePage() {
       [key]: value || undefined,
       page: 1,
     };
-    
+
     setFilters(newFilters);
-    
+
     // Debounce cho date inputs (chờ 500ms sau khi user ngừng nhập)
     if (key === "startDate" || key === "endDate") {
       if (debounceTimer.current) {
@@ -411,7 +411,9 @@ export default function HomePage() {
         </div>
 
         {/* Transactions Table */}
-        <div className={`glass rounded-2xl overflow-hidden relative transition-opacity duration-200 ${fetching ? 'opacity-60' : 'opacity-100'}`}>
+        <div
+          className={`glass rounded-2xl overflow-hidden relative transition-opacity duration-200 ${fetching ? "opacity-60" : "opacity-100"}`}
+        >
           {fetching && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-10 rounded-2xl">
               <div className="spinner"></div>
