@@ -232,7 +232,7 @@ export default function RegisterPage() {
         <div className="animate-fadeIn stagger-6" style={{ opacity: 0 }}>
           <button
             onClick={() =>
-              (window.location.href = `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "")}/api/auth/google`)
+              (window.location.href = `${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api").replace("/api", "")}/api/auth/google`)
             }
             className="w-full bg-white dark:bg-gray-700 text-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 py-3 px-4 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-300 flex items-center justify-center gap-3 hover-lift"
           >
