@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function AuthCallbackPage() {
+function CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -48,5 +48,22 @@ export default function AuthCallbackPage() {
         <div className="text-xl text-white/80">Đang xử lý đăng nhập...</div>
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center gradient-dark gradient-mesh">
+          <div className="flex flex-col items-center gap-4">
+            <div className="spinner"></div>
+            <div className="text-xl text-white/80">Đang xử lý đăng nhập...</div>
+          </div>
+        </div>
+      }
+    >
+      <CallbackContent />
+    </Suspense>
   );
 }
