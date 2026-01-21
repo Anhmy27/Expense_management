@@ -151,15 +151,17 @@ export default function HomePage() {
       page: 1,
     };
 
-    setFilters(newFilters);
-
-    // Debounce cho date inputs (chờ 500ms sau khi user ngừng nhập)
-    if (key === "startDate" || key === "endDate") {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
+    // Nếu thay đổi type, reset categoryId nếu không khớp
+    if (key === "type" && filters.categoryId) {
+      const selectedCategory = categories.find(
+        (cat) => cat._id === filters.categoryId,
+      );
+      if (selectedCategory && value && selectedCategory.type !== value) {
+        newFilters.categoryId = undefined;
       }
-      // Không cần làm gì, useEffect sẽ tự trigger
     }
+
+    setFilters(newFilters);
   };
 
   const formatCurrency = (amount: number) => {
@@ -400,11 +402,17 @@ export default function HomePage() {
                 <option value="" className="bg-gray-800">
                   Tất cả
                 </option>
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id} className="bg-gray-800">
-                    {cat.name} ({cat.type === "in" ? "Thu" : "Chi"})
-                  </option>
-                ))}
+                {categories
+                  .filter((cat) => !filters.type || cat.type === filters.type)
+                  .map((cat) => (
+                    <option
+                      key={cat._id}
+                      value={cat._id}
+                      className="bg-gray-800"
+                    >
+                      {cat.name} ({cat.type === "in" ? "Thu" : "Chi"})
+                    </option>
+                  ))}
               </select>
             </div>
           </div>
