@@ -11,7 +11,24 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return !this.googleId; // Password không bắt buộc nếu đăng nhập qua Google
+      },
+    },
+
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true, // Cho phép nhiều null values
+    },
+
+    email: {
+      type: String,
+      sparse: true,
+    },
+
+    name: {
+      type: String,
     },
 
     currentBalance: {

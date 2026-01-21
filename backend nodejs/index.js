@@ -3,13 +3,16 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 
+// Load environment variables FIRST
+dotenv.config();
+
+import passport from "./config/passport.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.js";
 import categoryRoutes from "./routes/categories.js";
 import transactionRoutes from "./routes/transactions.js";
 import statisticsRoutes from "./routes/statistics.js";
-
-dotenv.config();
+import oauthRoutes from "./routes/oauth.js";
 
 // Validate environment variables
 if (!process.env.MONGODB_URI) {
@@ -32,9 +35,11 @@ console.log("🔗 MongoDB URI:", process.env.MONGODB_URI.substring(0, 20) + "...
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/auth", oauthRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/transactions", transactionRoutes);
