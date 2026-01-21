@@ -506,9 +506,16 @@ export default function StatisticsPage() {
                     <Tooltip
                       formatter={formatTooltipValue}
                       contentStyle={{
-                        backgroundColor: "rgba(0,0,0,0.8)",
-                        border: "none",
+                        backgroundColor: "rgba(30, 30, 50, 0.95)",
+                        border: "1px solid rgba(255,255,255,0.2)",
                         borderRadius: "12px",
+                        color: "white",
+                      }}
+                      labelStyle={{
+                        color: "white",
+                        fontWeight: "bold",
+                      }}
+                      itemStyle={{
                         color: "white",
                       }}
                     />
@@ -577,9 +584,16 @@ export default function StatisticsPage() {
                     <Tooltip
                       formatter={formatTooltipValue}
                       contentStyle={{
-                        backgroundColor: "rgba(0,0,0,0.8)",
-                        border: "none",
+                        backgroundColor: "rgba(30, 30, 50, 0.95)",
+                        border: "1px solid rgba(255,255,255,0.2)",
                         borderRadius: "12px",
+                        color: "white",
+                      }}
+                      labelStyle={{
+                        color: "white",
+                        fontWeight: "bold",
+                      }}
+                      itemStyle={{
                         color: "white",
                       }}
                     />

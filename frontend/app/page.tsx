@@ -17,6 +17,7 @@ export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [budgetAlerts, setBudgetAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false); // Loading khi filter
   const [error, setError] = useState("");
@@ -63,15 +64,27 @@ export default function HomePage() {
         setFetching(true);
       }
 
-      const [userRes, transRes, catRes] = await Promise.all([
+      const token = localStorage.getItem("token");
+      const [userRes, transRes, catRes, budgetsRes] = await Promise.all([
         api.getProfile(),
         api.getTransactions(filters),
         api.getCategories(),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/budgets/active`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
+
       setUser(userRes);
       setTransactions(transRes.transactions);
       setPagination(transRes.pagination);
       setCategories(catRes);
+
+      if (budgetsRes.ok) {
+        const budgets = await budgetsRes.json();
+        setBudgetAlerts(
+          budgets.filter((b: any) => b.isWarning || b.isExceeded),
+        );
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
     } finally {
@@ -233,6 +246,12 @@ export default function HomePage() {
               📊 Thống kê
             </Link>
             <Link
+              href="/budgets"
+              className="gradient-success text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
+            >
+              💰 Ngân sách
+            </Link>
+            <Link
               href="/profile"
               className="glass text-white px-4 py-2 rounded-xl hover:bg-white/20 transition-all"
             >
@@ -249,6 +268,53 @@ export default function HomePage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 animate-fadeIn">
+        {/* Budget Alerts */}
+        {budgetAlerts.length > 0 && (
+          <div className="mb-6 space-y-3">
+            {budgetAlerts.map((budget) => (
+              <div
+                key={budget._id}
+                className={`glass border ${
+                  budget.isExceeded
+                    ? "border-red-500/50 bg-red-500/10"
+                    : "border-yellow-500/50 bg-yellow-500/10"
+                } px-4 py-3 rounded-xl animate-scaleIn`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">
+                      {budget.isExceeded ? "🚨" : "⚠️"}
+                    </span>
+                    <div>
+                      <p
+                        className={`font-semibold ${
+                          budget.isExceeded ? "text-red-400" : "text-yellow-400"
+                        }`}
+                      >
+                        {budget.isExceeded
+                          ? "Vượt ngân sách!"
+                          : "Cảnh báo ngân sách"}
+                      </p>
+                      <p className="text-sm text-gray-300">
+                        <strong>{budget.categoryId.name}</strong>: Đã chi{" "}
+                        {budget.spent.toLocaleString("vi-VN")}₫ /{" "}
+                        {budget.amount.toLocaleString("vi-VN")}₫ (
+                        {budget.percentage}%)
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/budgets"
+                    className="text-sm text-blue-400 hover:text-blue-300 underline"
+                  >
+                    Xem chi tiết
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {error && (
           <div className="glass border border-red-500/50 text-red-400 px-4 py-3 rounded-xl mb-4 animate-scaleIn">
             <div className="flex items-center justify-between">
