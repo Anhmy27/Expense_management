@@ -145,7 +145,7 @@ export default function HomePage() {
     try {
       await api.createTransaction({
         categoryId: newTransaction.categoryId,
-        walletId: newTransaction.walletId || undefined,
+        walletId: newTransaction.walletId,
         amount: parseFloat(newTransaction.amount),
         note: newTransaction.note,
         transactionDate: newTransaction.transactionDate,
