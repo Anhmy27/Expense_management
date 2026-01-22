@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
+import Toast from "@/components/Toast";
+import ConfirmModal from "@/components/ConfirmModal";
 
 interface Budget {
   _id: string;
@@ -48,6 +50,17 @@ export default function BudgetsPage() {
     endDate: "",
     warningThreshold: "80",
   });
+
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+  } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    type?: "danger" | "warning" | "info";
+  } | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -134,36 +147,58 @@ export default function BudgetsPage() {
           endDate: "",
           warningThreshold: "80",
         });
+        setToast({
+          message: editingBudget
+            ? "Đã cập nhật ngân sách thành công!"
+            : "Đã tạo ngân sách thành công!",
+          type: "success",
+        });
         fetchData();
       } else {
         const error = await response.json();
-        alert(error.message || "Có lỗi xảy ra");
+        setToast({ message: error.message || "Có lỗi xảy ra", type: "error" });
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Có lỗi xảy ra");
+      setToast({ message: "Có lỗi xảy ra", type: "error" });
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Bạn có chắc muốn xóa ngân sách này?")) return;
+    setConfirmModal({
+      title: "Xóa ngân sách",
+      message: "Bạn có chắc muốn xóa ngân sách này?",
+      type: "danger",
+      onConfirm: async () => {
+        setConfirmModal(null);
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/budgets/${id}`,
+            {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
 
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/budgets/${id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-
-      if (response.ok) {
-        fetchData();
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
+          if (response.ok) {
+            setToast({
+              message: "Đã xóa ngân sách thành công!",
+              type: "success",
+            });
+            fetchData();
+          } else {
+            setToast({
+              message: "Có lỗi xảy ra khi xóa ngân sách",
+              type: "error",
+            });
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          setToast({ message: "Có lỗi xảy ra", type: "error" });
+        }
+      },
+    });
   };
 
   const openEditModal = (budget: Budget) => {
@@ -551,6 +586,24 @@ export default function BudgetsPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {confirmModal && (
+        <ConfirmModal
+          title={confirmModal.title}
+          message={confirmModal.message}
+          type={confirmModal.type}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(null)}
+        />
       )}
     </div>
   );

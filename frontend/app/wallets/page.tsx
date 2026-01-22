@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
+import Toast from "@/components/Toast";
+import ConfirmModal from "@/components/ConfirmModal";
 
 interface Wallet {
   _id: string;
@@ -68,6 +70,17 @@ export default function WalletsPage() {
     totalWallets: 0,
     walletsByType: {} as any,
   });
+
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+  } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    type?: "danger" | "warning" | "info";
+  } | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -144,33 +157,42 @@ export default function WalletsPage() {
         fetchData();
       } else {
         const error = await response.json();
-        alert(error.message || "Có lỗi xảy ra");
+        setToast({ message: error.message || "Có lỗi xảy ra", type: "error" });
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Có lỗi xảy ra");
+      setToast({ message: "Có lỗi xảy ra", type: "error" });
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Bạn có chắc muốn xóa ví này?")) return;
+    setConfirmModal({
+      title: "Xóa ví",
+      message:
+        "Bạn có chắc muốn xóa ví này? Tất cả dữ liệu liên quan sẽ bị mất.",
+      type: "danger",
+      onConfirm: async () => {
+        setConfirmModal(null);
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/wallets/${id}`,
+            {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
 
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/wallets/${id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-
-      if (response.ok) {
-        fetchData();
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
+          if (response.ok) {
+            setToast({ message: "Đã xóa ví thành công!", type: "success" });
+            fetchData();
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          setToast({ message: "Có lỗi xảy ra", type: "error" });
+        }
+      },
+    });
   };
 
   const handleTransfer = async (e: React.FormEvent) => {
@@ -202,14 +224,14 @@ export default function WalletsPage() {
           note: "",
         });
         fetchData();
-        alert("Chuyển tiền thành công!");
+        setToast({ message: "Chuyển tiền thành công!", type: "success" });
       } else {
         const error = await response.json();
-        alert(error.message || "Có lỗi xảy ra");
+        setToast({ message: error.message || "Có lỗi xảy ra", type: "error" });
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Có lỗi xảy ra");
+      setToast({ message: "Có lỗi xảy ra", type: "error" });
     }
   };
 
@@ -736,6 +758,23 @@ export default function WalletsPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      {confirmModal && (
+        <ConfirmModal
+          title={confirmModal.title}
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(null)}
+          type={confirmModal.type}
+        />
       )}
     </div>
   );

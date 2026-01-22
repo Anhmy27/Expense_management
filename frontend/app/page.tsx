@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/useAuth";
+import Toast from "@/components/Toast";
+import ConfirmModal from "@/components/ConfirmModal";
 import {
   api,
   Transaction,
@@ -41,6 +43,18 @@ export default function HomePage() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
+
+  // Toast and Confirm states
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+  } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    type?: "danger" | "warning" | "info";
+  } | null>(null);
 
   // New transaction form
   const [newTransaction, setNewTransaction] = useState({
@@ -169,13 +183,32 @@ export default function HomePage() {
   };
 
   const handleDeleteTransaction = async (id: string) => {
-    if (!confirm("Bạn có chắc muốn xóa giao dịch này?")) return;
-    try {
-      await api.deleteTransaction(id);
-      fetchData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
-    }
+    setConfirmModal({
+      title: "Xóa giao dịch",
+      message:
+        "Bạn có chắc muốn xóa giao dịch này? Hành động này không thể hoàn tác.",
+      type: "danger",
+      onConfirm: async () => {
+        setConfirmModal(null);
+        setShowDetailModal(false); // Đóng modal chi tiết trước khi xóa
+        try {
+          await api.deleteTransaction(id);
+          setToast({
+            message: "Đã xóa giao dịch thành công!",
+            type: "success",
+          });
+          fetchData();
+        } catch (err) {
+          setToast({
+            message:
+              err instanceof Error
+                ? err.message
+                : "Có lỗi xảy ra khi xóa giao dịch",
+            type: "error",
+          });
+        }
+      },
+    });
   };
 
   const handleFilterChange = (key: keyof TransactionFilters, value: string) => {
@@ -610,7 +643,10 @@ export default function HomePage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <button
-                        onClick={() => handleDeleteTransaction(transaction._id)}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Ngăn trigger onClick của row
+                          handleDeleteTransaction(transaction._id);
+                        }}
                         className="text-red-400 hover:text-red-300 hover:bg-red-500/20 px-3 py-1 rounded-lg transition-all"
                       >
                         Xóa
@@ -1102,6 +1138,26 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Confirm Modal */}
+      {confirmModal && (
+        <ConfirmModal
+          title={confirmModal.title}
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(null)}
+          type={confirmModal.type}
+        />
       )}
     </div>
   );
