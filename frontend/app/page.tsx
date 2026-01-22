@@ -17,6 +17,7 @@ export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [wallets, setWallets] = useState<any[]>([]);
   const [budgetAlerts, setBudgetAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false); // Loading khi filter
@@ -37,10 +38,14 @@ export default function HomePage() {
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
 
   // New transaction form
   const [newTransaction, setNewTransaction] = useState({
     categoryId: "",
+    walletId: "",
     amount: "",
     note: "",
     transactionDate: new Date().toISOString().split("T")[0],
@@ -65,14 +70,18 @@ export default function HomePage() {
       }
 
       const token = localStorage.getItem("token");
-      const [userRes, transRes, catRes, budgetsRes] = await Promise.all([
-        api.getProfile(),
-        api.getTransactions(filters),
-        api.getCategories(),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/budgets/active`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+      const [userRes, transRes, catRes, budgetsRes, walletsRes] =
+        await Promise.all([
+          api.getProfile(),
+          api.getTransactions(filters),
+          api.getCategories(),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/budgets/active`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallets`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
       setUser(userRes);
       setTransactions(transRes.transactions);
@@ -84,6 +93,11 @@ export default function HomePage() {
         setBudgetAlerts(
           budgets.filter((b: any) => b.isWarning || b.isExceeded),
         );
+      }
+
+      if (walletsRes.ok) {
+        const walletsData = await walletsRes.json();
+        setWallets(walletsData);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
@@ -117,6 +131,7 @@ export default function HomePage() {
     try {
       await api.createTransaction({
         categoryId: newTransaction.categoryId,
+        walletId: newTransaction.walletId || undefined,
         amount: parseFloat(newTransaction.amount),
         note: newTransaction.note,
         transactionDate: newTransaction.transactionDate,
@@ -124,6 +139,7 @@ export default function HomePage() {
       setShowCreateModal(false);
       setNewTransaction({
         categoryId: "",
+        walletId: "",
         amount: "",
         note: "",
         transactionDate: new Date().toISOString().split("T")[0],
@@ -132,6 +148,11 @@ export default function HomePage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
     }
+  };
+
+  const handleViewTransactionDetail = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setShowDetailModal(true);
   };
 
   const handleCreateCategory = async (e: React.FormEvent) => {
@@ -250,6 +271,12 @@ export default function HomePage() {
               className="gradient-success text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
             >
               💰 Ngân sách
+            </Link>
+            <Link
+              href="/wallets"
+              className="gradient-info text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
+            >
+              👛 Ví
             </Link>
             <Link
               href="/profile"
@@ -545,7 +572,8 @@ export default function HomePage() {
                 transactions.map((transaction, index) => (
                   <tr
                     key={transaction._id}
-                    className="table-row-hover hover:bg-white/5"
+                    onClick={() => handleViewTransactionDetail(transaction)}
+                    className="table-row-hover hover:bg-white/5 cursor-pointer"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
@@ -635,8 +663,8 @@ export default function HomePage() {
       {/* Create Transaction Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 animate-fadeIn">
-          <div className="glass-card p-6 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn">
-            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
+          <div className="glass p-6 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn">
+            <h2 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
               <div className="w-8 h-8 gradient-info rounded-lg flex items-center justify-center">
                 <svg
                   className="w-4 h-4 text-white"
@@ -656,7 +684,7 @@ export default function HomePage() {
             </h2>
             <form onSubmit={handleCreateTransaction} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-200 mb-2">
                   Danh mục
                 </label>
                 <select
@@ -667,7 +695,7 @@ export default function HomePage() {
                       categoryId: e.target.value,
                     }))
                   }
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
+                  className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700/80 text-white transition-all"
                   required
                 >
                   <option value="">Chọn danh mục</option>
@@ -679,7 +707,30 @@ export default function HomePage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-200 mb-2">
+                  Ví (tùy chọn)
+                </label>
+                <select
+                  value={newTransaction.walletId}
+                  onChange={(e) =>
+                    setNewTransaction((prev) => ({
+                      ...prev,
+                      walletId: e.target.value,
+                    }))
+                  }
+                  className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700/80 text-white transition-all"
+                >
+                  <option value="">Không chọn ví</option>
+                  {wallets.map((wallet) => (
+                    <option key={wallet._id} value={wallet._id}>
+                      {wallet.icon} {wallet.name} (
+                      {wallet.balance.toLocaleString("vi-VN")}₫)
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-2">
                   Số tiền
                 </label>
                 <input
@@ -691,14 +742,14 @@ export default function HomePage() {
                       amount: e.target.value,
                     }))
                   }
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
+                  className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700/80 text-white transition-all"
                   min="1"
                   placeholder="Nhập số tiền"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-200 mb-2">
                   Ngày giao dịch
                 </label>
                 <input
@@ -710,12 +761,12 @@ export default function HomePage() {
                       transactionDate: e.target.value,
                     }))
                   }
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
+                  className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700/80 text-white transition-all"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-200 mb-2">
                   Ghi chú
                 </label>
                 <textarea
@@ -726,7 +777,7 @@ export default function HomePage() {
                       note: e.target.value,
                     }))
                   }
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
+                  className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700/80 text-white transition-all"
                   rows={3}
                   placeholder="Nhập ghi chú (tùy chọn)"
                 />
@@ -741,7 +792,7 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white py-3 px-4 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-all"
+                  className="flex-1 bg-slate-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-slate-500 transition-all"
                 >
                   Hủy
                 </button>
@@ -754,8 +805,8 @@ export default function HomePage() {
       {/* Create Category Modal */}
       {showCategoryModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 animate-fadeIn">
-          <div className="glass-card p-6 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn">
-            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
+          <div className="glass p-6 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn">
+            <h2 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
               <div className="w-8 h-8 gradient-success rounded-lg flex items-center justify-center">
                 <svg
                   className="w-4 h-4 text-white"
@@ -775,7 +826,7 @@ export default function HomePage() {
             </h2>
             <form onSubmit={handleCreateCategory} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-200 mb-2">
                   Tên danh mục
                 </label>
                 <input
@@ -787,13 +838,13 @@ export default function HomePage() {
                       name: e.target.value,
                     }))
                   }
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700/50 dark:text-white transition-all"
+                  className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 bg-slate-700/80 text-white transition-all"
                   placeholder="Ví dụ: Ăn uống, Lương..."
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-200 mb-2">
                   Loại
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -805,7 +856,7 @@ export default function HomePage() {
                     className={`py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
                       newCategory.type === "in"
                         ? "gradient-success text-white"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                        : "bg-slate-600 text-gray-200 hover:bg-slate-500"
                     }`}
                   >
                     <span>↑</span> Thu nhập
@@ -818,7 +869,7 @@ export default function HomePage() {
                     className={`py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
                       newCategory.type === "out"
                         ? "gradient-danger text-white"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                        : "bg-slate-600 text-gray-200 hover:bg-slate-500"
                     }`}
                   >
                     <span>↓</span> Chi tiêu
@@ -835,12 +886,218 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={() => setShowCategoryModal(false)}
-                  className="flex-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white py-3 px-4 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-all"
+                  className="flex-1 bg-slate-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-slate-500 transition-all"
                 >
                   Hủy
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Chi Tiết Giao Dịch */}
+      {showDetailModal && selectedTransaction && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass max-w-lg w-full rounded-3xl p-8 modal-slide-up shadow-2xl border border-white/10">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-bold text-white">
+                Chi tiết giao dịch
+              </h2>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="text-white/60 hover:text-white text-2xl hover:bg-white/10 rounded-full w-8 h-8 flex items-center justify-center transition-all"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Ngày giao dịch */}
+              <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
+                <div className="text-gray-200 text-sm mb-1 font-medium">
+                  Ngày giao dịch
+                </div>
+                <div className="text-white text-lg font-semibold">
+                  {formatDate(selectedTransaction.transactionDate)}
+                </div>
+              </div>
+
+              {/* Danh mục */}
+              <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
+                <div className="text-gray-200 text-sm mb-1 font-medium">
+                  Danh mục
+                </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-3 py-1 text-xs font-medium rounded-full ${
+                      selectedTransaction.categoryId?.type === "in"
+                        ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                        : "bg-red-500/20 text-red-400 border border-red-500/30"
+                    }`}
+                  >
+                    {selectedTransaction.categoryId?.type === "in"
+                      ? "↑ Thu"
+                      : "↓ Chi"}
+                  </span>
+                  <span className="text-white text-lg font-semibold">
+                    {selectedTransaction.categoryId?.name || "N/A"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Số tiền */}
+              <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
+                <div className="text-gray-200 text-sm mb-1 font-medium">
+                  Số tiền
+                </div>
+                <div
+                  className={`text-2xl font-bold ${
+                    selectedTransaction.categoryId?.type === "in"
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  {selectedTransaction.categoryId?.type === "in" ? "+" : "-"}
+                  {formatCurrency(selectedTransaction.amount)}
+                </div>
+              </div>
+
+              {/* Thông tin ví */}
+              {selectedTransaction.type === "normal" &&
+                selectedTransaction.walletId && (
+                  <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
+                    <div className="text-gray-200 text-sm mb-1 font-medium">
+                      {selectedTransaction.categoryId?.type === "in"
+                        ? "Vào ví"
+                        : "Từ ví"}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">
+                        {(selectedTransaction.walletId as any)?.icon || "💰"}
+                      </span>
+                      <div>
+                        <div className="text-white font-semibold">
+                          {(selectedTransaction.walletId as any)?.name || "N/A"}
+                        </div>
+                        <div className="text-white/60 text-xs">
+                          {(selectedTransaction.walletId as any)?.type ===
+                          "cash"
+                            ? "Tiền mặt"
+                            : (selectedTransaction.walletId as any)?.type ===
+                                "bank"
+                              ? "Ngân hàng"
+                              : (selectedTransaction.walletId as any)?.type ===
+                                  "credit"
+                                ? "Thẻ tín dụng"
+                                : "Ví điện tử"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {/* Thông tin chuyển ví */}
+              {(selectedTransaction.type === "transfer_out" ||
+                selectedTransaction.type === "transfer_in") && (
+                <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border-2 border-blue-400/60 shadow-lg">
+                  <div className="text-blue-400 text-sm mb-3 font-semibold flex items-center gap-2">
+                    <span>🔄</span> Giao dịch chuyển ví
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Ví hiện tại */}
+                    <div>
+                      <div className="text-gray-200 text-xs mb-1 font-medium">
+                        {selectedTransaction.type === "transfer_out"
+                          ? "Từ ví"
+                          : "Đến ví"}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">
+                          {(selectedTransaction.walletId as any)?.icon || "💰"}
+                        </span>
+                        <div>
+                          <div className="text-white font-semibold">
+                            {(selectedTransaction.walletId as any)?.name ||
+                              "N/A"}
+                          </div>
+                          <div className="text-white/60 text-xs">
+                            {(selectedTransaction.walletId as any)?.type ===
+                            "cash"
+                              ? "Tiền mặt"
+                              : (selectedTransaction.walletId as any)?.type ===
+                                  "bank"
+                                ? "Ngân hàng"
+                                : (selectedTransaction.walletId as any)
+                                      ?.type === "credit"
+                                  ? "Thẻ tín dụng"
+                                  : "Ví điện tử"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mũi tên */}
+                    <div className="text-center text-white/40">
+                      {selectedTransaction.type === "transfer_out" ? "→" : "←"}
+                    </div>
+
+                    {/* Ví liên quan */}
+                    {selectedTransaction.relatedWalletId && (
+                      <div>
+                        <div className="text-gray-200 text-xs mb-1 font-medium">
+                          {selectedTransaction.type === "transfer_out"
+                            ? "Đến ví"
+                            : "Từ ví"}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">
+                            {(selectedTransaction.relatedWalletId as any)
+                              ?.icon || "💰"}
+                          </span>
+                          <div>
+                            <div className="text-white font-semibold">
+                              {(selectedTransaction.relatedWalletId as any)
+                                ?.name || "N/A"}
+                            </div>
+                            <div className="text-white/60 text-xs">
+                              {(selectedTransaction.relatedWalletId as any)
+                                ?.type === "cash"
+                                ? "Tiền mặt"
+                                : (selectedTransaction.relatedWalletId as any)
+                                      ?.type === "bank"
+                                  ? "Ngân hàng"
+                                  : (selectedTransaction.relatedWalletId as any)
+                                        ?.type === "credit"
+                                    ? "Thẻ tín dụng"
+                                    : "Ví điện tử"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Ghi chú */}
+              {selectedTransaction.note && (
+                <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
+                  <div className="text-gray-200 text-sm mb-1 font-medium">
+                    Ghi chú
+                  </div>
+                  <div className="text-white">{selectedTransaction.note}</div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowDetailModal(false)}
+              className="w-full mt-6 gradient-primary text-white py-3 px-4 rounded-xl font-semibold hover-lift transition-all"
+            >
+              Đóng
+            </button>
           </div>
         </div>
       )}

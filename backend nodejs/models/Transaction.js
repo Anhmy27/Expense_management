@@ -15,6 +15,12 @@ const transactionSchema = new mongoose.Schema(
       required: true,
     },
 
+    walletId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Wallet",
+      required: false, // Optional để tương thích với dữ liệu cũ
+    },
+
     amount: {
       type: Number,
       required: true,
@@ -29,6 +35,22 @@ const transactionSchema = new mongoose.Schema(
       type: Date,
       required: true,
       index: true,
+    },
+
+    type: {
+      type: String,
+      enum: ["normal", "transfer_out", "transfer_in"],
+      default: "normal",
+    },
+
+    // Cho giao dịch chuyển ví
+    transferId: {
+      type: String, // UUID để link 2 transactions chuyển ví
+    },
+
+    relatedWalletId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Wallet", // Ví đích (nếu transfer_out) hoặc ví nguồn (nếu transfer_in)
     },
   },
   { timestamps: true }

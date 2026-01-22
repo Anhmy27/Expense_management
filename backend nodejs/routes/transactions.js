@@ -2,6 +2,7 @@ import express from "express";
 import Transaction from "../models/Transaction.js";
 import Category from "../models/Category.js";
 import User from "../models/User.js";
+import Wallet from "../models/Wallet.js";
 import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
@@ -43,6 +44,8 @@ router.get("/", authMiddleware, async (req, res) => {
     const [transactions, total] = await Promise.all([
       Transaction.find(filter)
         .populate("categoryId", "name type")
+        .populate("walletId", "name type icon color")
+        .populate("relatedWalletId", "name type icon color")
         .sort({ transactionDate: -1, createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
@@ -67,7 +70,7 @@ router.get("/", authMiddleware, async (req, res) => {
 // Tạo giao dịch mới
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { categoryId, amount, note, transactionDate } = req.body;
+    const { categoryId, walletId, amount, note, transactionDate } = req.body;
 
     if (!categoryId || !amount || !transactionDate) {
       return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin" });
@@ -86,9 +89,23 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy category hoặc bạn không có quyền sử dụng" });
     }
 
+    // Kiểm tra wallet nếu có
+    let wallet = null;
+    if (walletId) {
+      wallet = await Wallet.findOne({
+        _id: walletId,
+        userId: req.user.userId,
+        isActive: true,
+      });
+      if (!wallet) {
+        return res.status(404).json({ message: "Không tìm thấy ví" });
+      }
+    }
+
     const transaction = new Transaction({
       userId: req.user.userId,
       categoryId,
+      walletId: walletId || undefined,
       amount,
       note,
       transactionDate: new Date(transactionDate),
@@ -96,14 +113,22 @@ router.post("/", authMiddleware, async (req, res) => {
 
     await transaction.save();
 
-    // Cập nhật số dư
+    // Cập nhật số dư user
     const balanceChange = category.type === "in" ? amount : -amount;
     await User.findByIdAndUpdate(req.user.userId, {
       $inc: { currentBalance: balanceChange },
     });
 
+    // Cập nhật số dư ví nếu có
+    if (wallet) {
+      const walletChange = category.type === "in" ? amount : -amount;
+      wallet.balance += walletChange;
+      await wallet.save();
+    }
+
     const populatedTransaction = await Transaction.findById(transaction._id)
-      .populate("categoryId", "name type");
+      .populate("categoryId", "name type")
+      .populate("walletId", "name type icon color");
 
     res.status(201).json(populatedTransaction);
   } catch (error) {
@@ -118,13 +143,13 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     const transaction = await Transaction.findOne({
       _id: req.params.id,
       userId: req.user.userId,
-    }).populate("categoryId");
+    }).populate("categoryId").populate("walletId");
 
     if (!transaction) {
       return res.status(404).json({ message: "Không tìm thấy giao dịch" });
     }
 
-    // Hoàn lại số dư
+    // Hoàn lại số dư user
     const balanceChange = transaction.categoryId.type === "in" 
       ? -transaction.amount 
       : transaction.amount;
@@ -132,6 +157,16 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     await User.findByIdAndUpdate(req.user.userId, {
       $inc: { currentBalance: balanceChange },
     });
+
+    // Hoàn lại số dư ví nếu có
+    if (transaction.walletId) {
+      const walletChange = transaction.categoryId.type === "in"
+        ? -transaction.amount
+        : transaction.amount;
+      await Wallet.findByIdAndUpdate(transaction.walletId._id, {
+        $inc: { balance: walletChange },
+      });
+    }
 
     await Transaction.findByIdAndDelete(req.params.id);
 

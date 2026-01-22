@@ -408,8 +408,8 @@ export default function BudgetsPage() {
       {/* Create/Edit Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 animate-fadeIn p-4">
-          <div className="glass-card p-6 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn">
-            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
+          <div className="glass p-6 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn">
+            <h2 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
               <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
                 <svg
                   className="w-4 h-4 text-white"
@@ -430,7 +430,7 @@ export default function BudgetsPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-200 mb-2">
                   Danh mục
                 </label>
                 <select
@@ -438,7 +438,7 @@ export default function BudgetsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, categoryId: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
+                  className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700/80 text-white transition-all"
                   required
                   disabled={!!editingBudget}
                 >
@@ -452,7 +452,7 @@ export default function BudgetsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-200 mb-2">
                   Số tiền ngân sách
                 </label>
                 <input
@@ -461,7 +461,7 @@ export default function BudgetsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, amount: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
+                  className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700/80 text-white transition-all"
                   placeholder="Nhập số tiền"
                   required
                   min="0"
@@ -470,7 +470,7 @@ export default function BudgetsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
                     Từ ngày
                   </label>
                   <input
@@ -479,13 +479,13 @@ export default function BudgetsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, startDate: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
+                    className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700/80 text-white transition-all"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
                     Đến ngày
                   </label>
                   <input
@@ -494,7 +494,7 @@ export default function BudgetsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, endDate: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700/50 dark:text-white transition-all"
+                    className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700/80 text-white transition-all"
                     required
                   />
                 </div>
@@ -502,7 +502,7 @@ export default function BudgetsPage() {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="block text-sm font-medium text-gray-200">
                     Ngưỡng cảnh báo
                   </label>
                   <span className="text-purple-600 dark:text-purple-400 font-bold">
@@ -543,7 +543,7 @@ export default function BudgetsPage() {
                     setShowCreateModal(false);
                     setEditingBudget(null);
                   }}
-                  className="flex-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white py-3 px-4 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-all"
+                  className="flex-1 bg-slate-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-slate-500 transition-all"
                 >
                   Hủy
                 </button>

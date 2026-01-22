@@ -122,9 +122,13 @@ export interface Transaction {
   _id: string;
   userId: string;
   categoryId: Category;
+  walletId?: any; // Wallet object hoặc ID
   amount: number;
   note?: string;
   transactionDate: string;
+  type?: "normal" | "transfer_out" | "transfer_in";
+  transferId?: string;
+  relatedWalletId?: any; // Wallet object hoặc ID
   createdAt: string;
 }
 
@@ -149,6 +153,7 @@ export interface TransactionResponse {
 
 export interface CreateTransactionData {
   categoryId: string;
+  walletId?: string;
   amount: number;
   note?: string;
   transactionDate: string;
