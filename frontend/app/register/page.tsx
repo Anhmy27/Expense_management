@@ -51,12 +51,12 @@ export default function RegisterPage() {
           style={{ animationDelay: "1s" }}
         ></div>
         <div
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"
           style={{ animationDelay: "2s" }}
         ></div>
       </div>
 
-      <div className="glass-card p-8 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn relative z-10">
+      <div className="bg-white/90 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn relative z-10 border border-white/50">
         {/* Logo/Icon */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 gradient-success rounded-2xl flex items-center justify-center animate-pulse-glow">
@@ -76,10 +76,10 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold text-center mb-2 text-gray-800 dark:text-white">
+        <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
           Tạo tài khoản
         </h1>
-        <p className="text-center text-gray-500 dark:text-gray-400 mb-6">
+        <p className="text-center text-gray-600 mb-6">
           Đăng ký để bắt đầu quản lý chi tiêu
         </p>
 

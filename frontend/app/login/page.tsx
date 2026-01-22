@@ -44,7 +44,7 @@ export default function LoginPage() {
         ></div>
       </div>
 
-      <div className="glass-card p-8 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn relative z-10">
+      <div className="bg-white/90 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn relative z-10 border border-white/50">
         {/* Logo/Icon */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center animate-pulse-glow">
@@ -64,10 +64,10 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold text-center mb-2 text-gray-800 dark:text-white">
+        <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
           Chào mừng trở lại
         </h1>
-        <p className="text-center text-gray-500 dark:text-gray-400 mb-6">
+        <p className="text-center text-gray-600 mb-6">
           Đăng nhập để quản lý chi tiêu của bạn
         </p>
 
