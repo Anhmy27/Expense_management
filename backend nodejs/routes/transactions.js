@@ -30,8 +30,8 @@ router.get("/", authMiddleware, async (req, res) => {
       filter.categoryId = categoryId;
     }
 
-    // Lọc theo type (in/out)
-    if (type && ["in", "out"].includes(type)) {
+    // Lọc theo type (in/out) - chỉ khi KHÔNG chọn categoryId cụ thể
+    if (type && ["in", "out"].includes(type) && !categoryId) {
       const categoryIds = await Category.find({ 
         userId: req.user.userId,
         type 
