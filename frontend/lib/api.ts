@@ -153,7 +153,7 @@ export interface TransactionResponse {
 
 export interface CreateTransactionData {
   categoryId: string;
-  walletId?: string;
+  walletId: string; // Bắt buộc
   amount: number;
   note?: string;
   transactionDate: string;

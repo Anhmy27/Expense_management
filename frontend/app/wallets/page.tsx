@@ -48,6 +48,9 @@ export default function WalletsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
+  const [showTransactionsModal, setShowTransactionsModal] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [walletTransactions, setWalletTransactions] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -248,6 +251,29 @@ export default function WalletsPage() {
     setShowCreateModal(true);
   };
 
+  const handleViewTransactions = async (wallet: Wallet) => {
+    setSelectedWallet(wallet);
+    setShowTransactionsModal(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/transactions?walletId=${wallet._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setWalletTransactions(data.transactions || []);
+      }
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      setWalletTransactions([]);
+    }
+  };
+
   const getWalletTypeLabel = (type: string) => {
     return WALLET_TYPES.find((t) => t.value === type)?.label || type;
   };
@@ -413,7 +439,8 @@ export default function WalletsPage() {
           {wallets.map((wallet) => (
             <div
               key={wallet._id}
-              className="glass p-6 rounded-2xl hover-lift transition-all"
+              onClick={() => handleViewTransactions(wallet)}
+              className="glass p-6 rounded-2xl hover-lift transition-all cursor-pointer hover:scale-105"
               style={{ borderLeft: `4px solid ${wallet.color}` }}
             >
               <div className="flex justify-between items-start mb-4">
@@ -435,13 +462,19 @@ export default function WalletsPage() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => openEditModal(wallet)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(wallet);
+                    }}
                     className="text-blue-400 hover:text-blue-300"
                   >
                     ✏️
                   </button>
                   <button
-                    onClick={() => handleDelete(wallet._id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(wallet._id);
+                    }}
                     className="text-red-400 hover:text-red-300"
                   >
                     🗑️
@@ -756,6 +789,158 @@ export default function WalletsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Transactions Modal */}
+      {showTransactionsModal && selectedWallet && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass max-w-4xl w-full rounded-3xl p-8 modal-slide-up shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">
+                  Giao dịch - {selectedWallet.icon} {selectedWallet.name}
+                </h2>
+                <p className="text-gray-300">
+                  {getWalletTypeLabel(selectedWallet.type)}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowTransactionsModal(false);
+                  setSelectedWallet(null);
+                  setWalletTransactions([]);
+                }}
+                className="text-white/60 hover:text-white text-2xl hover:bg-white/10 rounded-full w-10 h-10 flex items-center justify-center transition-all"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Wallet Summary */}
+            <div
+              className="bg-gradient-to-br from-slate-700 to-slate-600 p-6 rounded-xl border border-white/20 mb-6"
+              style={{
+                borderLeftColor: selectedWallet.color,
+                borderLeftWidth: "4px",
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-gray-200 text-sm mb-1">
+                    Số dư hiện tại
+                  </div>
+                  <div className="text-white text-3xl font-bold">
+                    {selectedWallet.balance.toLocaleString("vi-VN")}₫
+                  </div>
+                </div>
+                <div className="text-5xl opacity-50">{selectedWallet.icon}</div>
+              </div>
+              {selectedWallet.description && (
+                <p className="text-gray-300 text-sm mt-3">
+                  {selectedWallet.description}
+                </p>
+              )}
+            </div>
+
+            {/* Transactions List */}
+            <div className="space-y-3">
+              {walletTransactions.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <div className="text-5xl mb-3">📭</div>
+                  <p>Chưa có giao dịch nào cho ví này</p>
+                </div>
+              ) : (
+                walletTransactions.map((transaction) => (
+                  <div
+                    key={transaction._id}
+                    className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 hover:border-white/30 transition-all"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span
+                            className={`text-2xl ${
+                              transaction.type === "transfer_out"
+                                ? "text-blue-400"
+                                : transaction.type === "transfer_in"
+                                  ? "text-blue-400"
+                                  : transaction.categoryId?.type === "in"
+                                    ? "text-green-400"
+                                    : "text-red-400"
+                            }`}
+                          >
+                            {transaction.type === "transfer_out"
+                              ? "→"
+                              : transaction.type === "transfer_in"
+                                ? "←"
+                                : transaction.categoryId?.type === "in"
+                                  ? "↑"
+                                  : "↓"}
+                          </span>
+                          <div>
+                            <div className="text-white font-semibold">
+                              {transaction.categoryId?.name || "N/A"}
+                            </div>
+                            <div className="text-gray-400 text-sm">
+                              {new Date(
+                                transaction.transactionDate,
+                              ).toLocaleDateString("vi-VN")}
+                            </div>
+                          </div>
+                        </div>
+                        {transaction.note && (
+                          <p className="text-gray-300 text-sm ml-11">
+                            {transaction.note}
+                          </p>
+                        )}
+                        {/* Hiển thị ví liên quan cho giao dịch chuyển khoản */}
+                        {(transaction.type === "transfer_out" ||
+                          transaction.type === "transfer_in") &&
+                          transaction.relatedWalletId && (
+                            <div className="text-blue-400 text-xs ml-11 mt-1">
+                              {transaction.type === "transfer_out"
+                                ? "→ "
+                                : "← "}
+                              {transaction.relatedWalletId.icon}{" "}
+                              {transaction.relatedWalletId.name}
+                            </div>
+                          )}
+                      </div>
+                      <div
+                        className={`text-xl font-bold ${
+                          transaction.type === "transfer_out"
+                            ? "text-red-400"
+                            : transaction.type === "transfer_in"
+                              ? "text-green-400"
+                              : transaction.categoryId?.type === "in"
+                                ? "text-green-400"
+                                : "text-red-400"
+                        }`}
+                      >
+                        {transaction.type === "transfer_in" ||
+                        transaction.categoryId?.type === "in"
+                          ? "+"
+                          : "-"}
+                        {transaction.amount.toLocaleString("vi-VN")}₫
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <button
+              onClick={() => {
+                setShowTransactionsModal(false);
+                setSelectedWallet(null);
+                setWalletTransactions([]);
+              }}
+              className="w-full mt-6 gradient-primary text-white py-3 px-4 rounded-xl font-semibold hover-lift transition-all"
+            >
+              Đóng
+            </button>
           </div>
         </div>
       )}

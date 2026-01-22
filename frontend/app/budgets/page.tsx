@@ -41,6 +41,9 @@ export default function BudgetsPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [showTransactionsModal, setShowTransactionsModal] = useState(false);
+  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [budgetTransactions, setBudgetTransactions] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     categoryId: "",
@@ -214,6 +217,29 @@ export default function BudgetsPage() {
     setShowCreateModal(true);
   };
 
+  const handleViewTransactions = async (budget: Budget) => {
+    setSelectedBudget(budget);
+    setShowTransactionsModal(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/transactions?categoryId=${budget.categoryId._id}&startDate=${budget.startDate}&endDate=${budget.endDate}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setBudgetTransactions(data.transactions || []);
+      }
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      setBudgetTransactions([]);
+    }
+  };
+
   const getProgressColor = (budget: Budget) => {
     if (budget.isExceeded) return "bg-red-500";
     if (budget.isWarning) return "bg-yellow-500";
@@ -317,7 +343,8 @@ export default function BudgetsPage() {
           {budgets.map((budget) => (
             <div
               key={budget._id}
-              className={`glass-card p-6 rounded-2xl hover-lift relative overflow-hidden ${
+              onClick={() => handleViewTransactions(budget)}
+              className={`glass-card p-6 rounded-2xl hover-lift relative overflow-hidden cursor-pointer transition-all hover:scale-105 ${
                 budget.isExceeded
                   ? "border-2 border-red-500/50"
                   : budget.isWarning
@@ -353,13 +380,19 @@ export default function BudgetsPage() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => openEditModal(budget)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(budget);
+                    }}
                     className="text-blue-400 hover:text-blue-300"
                   >
                     ✏️
                   </button>
                   <button
-                    onClick={() => handleDelete(budget._id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(budget._id);
+                    }}
                     className="text-red-400 hover:text-red-300"
                   >
                     🗑️
@@ -584,6 +617,130 @@ export default function BudgetsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Transactions Modal */}
+      {showTransactionsModal && selectedBudget && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass max-w-4xl w-full rounded-3xl p-8 modal-slide-up shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">
+                  Giao dịch - {selectedBudget.categoryId.name}
+                </h2>
+                <p className="text-gray-300">
+                  {new Date(selectedBudget.startDate).toLocaleDateString(
+                    "vi-VN",
+                  )}{" "}
+                  -{" "}
+                  {new Date(selectedBudget.endDate).toLocaleDateString("vi-VN")}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowTransactionsModal(false);
+                  setSelectedBudget(null);
+                  setBudgetTransactions([]);
+                }}
+                className="text-white/60 hover:text-white text-2xl hover:bg-white/10 rounded-full w-10 h-10 flex items-center justify-center transition-all"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Summary */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20">
+                <div className="text-gray-200 text-sm mb-1">Ngân sách</div>
+                <div className="text-white text-xl font-bold">
+                  {selectedBudget.amount.toLocaleString("vi-VN")}₫
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20">
+                <div className="text-gray-200 text-sm mb-1">Đã chi</div>
+                <div className="text-red-400 text-xl font-bold">
+                  {(selectedBudget.spent || 0).toLocaleString("vi-VN")}₫
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20">
+                <div className="text-gray-200 text-sm mb-1">Còn lại</div>
+                <div
+                  className={`text-xl font-bold ${selectedBudget.remaining && selectedBudget.remaining > 0 ? "text-green-400" : "text-red-400"}`}
+                >
+                  {selectedBudget.remaining && selectedBudget.remaining > 0
+                    ? selectedBudget.remaining.toLocaleString("vi-VN")
+                    : `Vượt ${Math.abs(selectedBudget.remaining || 0).toLocaleString("vi-VN")}`}
+                  ₫
+                </div>
+              </div>
+            </div>
+
+            {/* Transactions List */}
+            <div className="space-y-3">
+              {budgetTransactions.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <div className="text-5xl mb-3">📭</div>
+                  <p>Chưa có giao dịch nào trong khoảng thời gian này</p>
+                </div>
+              ) : (
+                budgetTransactions.map((transaction) => (
+                  <div
+                    key={transaction._id}
+                    className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 hover:border-white/30 transition-all"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-2xl">
+                            {transaction.categoryId?.type === "in" ? "↑" : "↓"}
+                          </span>
+                          <div>
+                            <div className="text-white font-semibold">
+                              {transaction.categoryId?.name || "N/A"}
+                            </div>
+                            <div className="text-gray-400 text-sm">
+                              {new Date(
+                                transaction.transactionDate,
+                              ).toLocaleDateString("vi-VN")}
+                            </div>
+                          </div>
+                        </div>
+                        {transaction.note && (
+                          <p className="text-gray-300 text-sm ml-11">
+                            {transaction.note}
+                          </p>
+                        )}
+                        {transaction.walletId && (
+                          <div className="text-gray-400 text-xs ml-11 mt-1">
+                            {transaction.walletId.icon}{" "}
+                            {transaction.walletId.name}
+                          </div>
+                        )}
+                      </div>
+                      <div
+                        className={`text-xl font-bold ${transaction.categoryId?.type === "in" ? "text-green-400" : "text-red-400"}`}
+                      >
+                        {transaction.categoryId?.type === "in" ? "+" : "-"}
+                        {transaction.amount.toLocaleString("vi-VN")}₫
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <button
+              onClick={() => {
+                setShowTransactionsModal(false);
+                setSelectedBudget(null);
+                setBudgetTransactions([]);
+              }}
+              className="w-full mt-6 gradient-primary text-white py-3 px-4 rounded-xl font-semibold hover-lift transition-all"
+            >
+              Đóng
+            </button>
           </div>
         </div>
       )}

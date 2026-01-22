@@ -18,7 +18,7 @@ const transactionSchema = new mongoose.Schema(
     walletId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Wallet",
-      required: false, // Optional để tương thích với dữ liệu cũ
+      required: true, // Bắt buộc phải có ví
     },
 
     amount: {

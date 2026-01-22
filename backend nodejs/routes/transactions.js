@@ -72,8 +72,8 @@ router.post("/", authMiddleware, async (req, res) => {
   try {
     const { categoryId, walletId, amount, note, transactionDate } = req.body;
 
-    if (!categoryId || !amount || !transactionDate) {
-      return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin" });
+    if (!categoryId || !walletId || !amount || !transactionDate) {
+      return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin bao gồm ví" });
     }
 
     if (amount <= 0) {
@@ -89,23 +89,20 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy category hoặc bạn không có quyền sử dụng" });
     }
 
-    // Kiểm tra wallet nếu có
-    let wallet = null;
-    if (walletId) {
-      wallet = await Wallet.findOne({
-        _id: walletId,
-        userId: req.user.userId,
-        isActive: true,
-      });
-      if (!wallet) {
-        return res.status(404).json({ message: "Không tìm thấy ví" });
-      }
+    // Kiểm tra wallet - BẮT BUỘC
+    const wallet = await Wallet.findOne({
+      _id: walletId,
+      userId: req.user.userId,
+      isActive: true,
+    });
+    if (!wallet) {
+      return res.status(404).json({ message: "Không tìm thấy ví" });
     }
 
     const transaction = new Transaction({
       userId: req.user.userId,
       categoryId,
-      walletId: walletId || undefined,
+      walletId,
       amount,
       note,
       transactionDate: new Date(transactionDate),
@@ -119,12 +116,10 @@ router.post("/", authMiddleware, async (req, res) => {
       $inc: { currentBalance: balanceChange },
     });
 
-    // Cập nhật số dư ví nếu có
-    if (wallet) {
-      const walletChange = category.type === "in" ? amount : -amount;
-      wallet.balance += walletChange;
-      await wallet.save();
-    }
+    // Cập nhật số dư ví
+    // Cập nhật số dư ví
+    wallet.balance += balanceChange;
+    await wallet.save();
 
     const populatedTransaction = await Transaction.findById(transaction._id)
       .populate("categoryId", "name type")
