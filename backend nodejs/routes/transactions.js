@@ -99,6 +99,13 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy ví" });
     }
 
+    // Kiểm tra số dư ví nếu là giao dịch CHI
+    if (category.type === "out" && wallet.balance < amount) {
+      return res.status(400).json({ 
+        message: `Số dư ví không đủ! Số dư hiện tại: ${wallet.balance.toLocaleString("vi-VN")}₫, cần: ${amount.toLocaleString("vi-VN")}₫` 
+      });
+    }
+
     const transaction = new Transaction({
       userId: req.user.userId,
       categoryId,

@@ -8,6 +8,7 @@ import {
   StatisticsResponse,
   TimeSeriesDataPoint,
   CategoryDataPoint,
+  Wallet,
 } from "@/lib/api";
 import {
   LineChart,
@@ -42,35 +43,61 @@ export default function StatisticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statistics, setStatistics] = useState<StatisticsResponse | null>(null);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
 
   // Filters
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
   const [period, setPeriod] = useState<"week" | "month">("month");
+  const [selectedWalletId, setSelectedWalletId] = useState<string>("");
 
   const fetchStatistics = useCallback(async () => {
     try {
       if (loading) {
         // Initial load - keep loading spinner
-        const data = await api.getStatistics({ year, period });
+        const data = await api.getStatistics({
+          year,
+          period,
+          walletId: selectedWalletId || undefined,
+        });
         setStatistics(data);
         setLoading(false);
       } else {
         // Filter change - silent update
-        const data = await api.getStatistics({ year, period });
+        const data = await api.getStatistics({
+          year,
+          period,
+          walletId: selectedWalletId || undefined,
+        });
         setStatistics(data);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
       setLoading(false);
     }
-  }, [year, period, loading]);
+  }, [year, period, selectedWalletId, loading]);
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchStatistics();
     }
   }, [isAuthenticated, fetchStatistics]);
+
+  // Fetch wallets on mount
+  useEffect(() => {
+    const fetchWallets = async () => {
+      try {
+        const data = await api.getWallets();
+        setWallets(data);
+      } catch (err) {
+        console.error("Failed to fetch wallets", err);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchWallets();
+    }
+  }, [isAuthenticated]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -224,6 +251,29 @@ export default function StatisticsPage() {
                 <option value="week" className="bg-gray-800">
                   Tuần
                 </option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2">
+                Lọc theo ví
+              </label>
+              <select
+                value={selectedWalletId}
+                onChange={(e) => setSelectedWalletId(e.target.value)}
+                className="px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white transition-all hover:bg-white/15"
+              >
+                <option value="" className="bg-gray-800">
+                  Tất cả ví
+                </option>
+                {wallets.map((wallet) => (
+                  <option
+                    key={wallet._id}
+                    value={wallet._id}
+                    className="bg-gray-800"
+                  >
+                    {wallet.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

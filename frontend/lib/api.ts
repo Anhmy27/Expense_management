@@ -94,13 +94,17 @@ export const api = {
     request<{ message: string }>(`/transactions/${id}`, { method: "DELETE" }),
 
   // Statistics
-  getStatistics: (params?: { year?: number; period?: "week" | "month" }) => {
+  getStatistics: (params?: { year?: number; period?: "week" | "month"; walletId?: string }) => {
     const searchParams = new URLSearchParams();
     if (params?.year) searchParams.append("year", params.year.toString());
     if (params?.period) searchParams.append("period", params.period);
+    if (params?.walletId) searchParams.append("walletId", params.walletId);
     const queryString = searchParams.toString();
     return request<StatisticsResponse>(`/statistics${queryString ? `?${queryString}` : ""}`);
   },
+
+  // Wallets
+  getWallets: () => request<Wallet[]>("/wallets"),
 };
 
 // Types
@@ -116,6 +120,16 @@ export interface Category {
   _id: string;
   name: string;
   type: "in" | "out";
+}
+
+export interface Wallet {
+  _id: string;
+  name: string;
+  type: "cash" | "bank" | "credit" | "ewallet";
+  balance: number;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Transaction {

@@ -8,7 +8,7 @@ const router = express.Router();
 // Lấy thống kê theo tuần hoặc tháng trong năm
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const { year, period = "month" } = req.query;
+    const { year, period = "month", walletId } = req.query;
     const selectedYear = parseInt(year) || new Date().getFullYear();
 
     // Lấy tất cả categories của user hiện tại
@@ -20,11 +20,19 @@ router.get("/", authMiddleware, async (req, res) => {
     const startOfYear = new Date(selectedYear, 0, 1);
     const endOfYear = new Date(selectedYear, 11, 31, 23, 59, 59);
 
-    // Lấy tất cả giao dịch trong năm
-    const transactions = await Transaction.find({
+    // Query filter cho giao dịch
+    const transactionFilter = {
       userId: req.user.userId,
       transactionDate: { $gte: startOfYear, $lte: endOfYear },
-    }).populate("categoryId", "name type");
+    };
+
+    // Nếu có walletId, lọc theo ví
+    if (walletId) {
+      transactionFilter.walletId = walletId;
+    }
+
+    // Lấy tất cả giao dịch trong năm
+    const transactions = await Transaction.find(transactionFilter).populate("categoryId", "name type");
 
     let timeSeriesData = [];
     let categoryIncomeData = [];
