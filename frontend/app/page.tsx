@@ -899,9 +899,9 @@ export default function HomePage() {
       {/* Modal Chi Tiết Giao Dịch */}
       {showDetailModal && selectedTransaction && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="glass max-w-lg w-full rounded-3xl p-8 modal-slide-up shadow-2xl border border-white/10">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold text-white">
+          <div className="glass max-w-md w-full rounded-3xl modal-slide-up shadow-2xl border border-white/10 max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-6 pb-4">
+              <h2 className="text-2xl font-bold text-white">
                 Chi tiết giao dịch
               </h2>
               <button
@@ -912,7 +912,7 @@ export default function HomePage() {
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 px-6 pb-6 overflow-y-auto">
               {/* Ngày giao dịch */}
               <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
                 <div className="text-gray-200 text-sm mb-1 font-medium">
@@ -1092,12 +1092,14 @@ export default function HomePage() {
               )}
             </div>
 
-            <button
-              onClick={() => setShowDetailModal(false)}
-              className="w-full mt-6 gradient-primary text-white py-3 px-4 rounded-xl font-semibold hover-lift transition-all"
-            >
-              Đóng
-            </button>
+            <div className="p-6 pt-4">
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="w-full gradient-primary text-white py-3 px-4 rounded-xl font-semibold hover-lift transition-all"
+              >
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}
