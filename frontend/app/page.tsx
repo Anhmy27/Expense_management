@@ -282,15 +282,15 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-3">
             <div className="glass px-4 py-2 rounded-xl">
-              <span className="text-white/70 text-sm">Số dư: </span>
+              <span className="text-white/70 text-sm">Tổng số dư: </span>
               <span
                 className={`font-bold ${
-                  (user?.currentBalance || 0) >= 0
+                  wallets.reduce((sum, w) => sum + w.balance, 0) >= 0
                     ? "text-green-400"
                     : "text-red-400"
                 }`}
               >
-                {formatCurrency(user?.currentBalance || 0)}
+                {formatCurrency(wallets.reduce((sum, w) => sum + w.balance, 0))}
               </span>
             </div>
             <Link
@@ -310,6 +310,12 @@ export default function HomePage() {
               className="gradient-info text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
             >
               👛 Ví
+            </Link>
+            <Link
+              href="/savings"
+              className="gradient-warning text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
+            >
+              🎯 Tiết kiệm
             </Link>
             <Link
               href="/profile"
@@ -613,29 +619,41 @@ export default function HomePage() {
                       {formatDate(transaction.transactionDate)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                      {transaction.categoryId?.name || "N/A"}
+                      {transaction.categoryId?.name ||
+                        transaction.categoryName ||
+                        "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-3 py-1 text-xs font-medium rounded-full ${
-                          transaction.categoryId?.type === "in"
+                          transaction.type === "transfer_in" ||
+                          transaction.categoryId?.type === "in" ||
+                          transaction.categoryName === "Rút tiết kiệm"
                             ? "bg-green-500/20 text-green-400 border border-green-500/30"
                             : "bg-red-500/20 text-red-400 border border-red-500/30"
                         }`}
                       >
-                        {transaction.categoryId?.type === "in"
+                        {transaction.type === "transfer_in" ||
+                        transaction.categoryId?.type === "in" ||
+                        transaction.categoryName === "Rút tiết kiệm"
                           ? "↑ Thu"
                           : "↓ Chi"}
                       </span>
                     </td>
                     <td
                       className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${
-                        transaction.categoryId?.type === "in"
+                        transaction.type === "transfer_in" ||
+                        transaction.categoryId?.type === "in" ||
+                        transaction.categoryName === "Rút tiết kiệm"
                           ? "text-green-400"
                           : "text-red-400"
                       }`}
                     >
-                      {transaction.categoryId?.type === "in" ? "+" : "-"}
+                      {transaction.type === "transfer_in" ||
+                      transaction.categoryId?.type === "in" ||
+                      transaction.categoryName === "Rút tiết kiệm"
+                        ? "+"
+                        : "-"}
                       {formatCurrency(transaction.amount)}
                     </td>
                     <td className="px-6 py-4 text-sm text-white/60 max-w-xs truncate">
@@ -744,7 +762,7 @@ export default function HomePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-2">
-                  Ví (tùy chọn)
+                  Ví
                 </label>
                 <select
                   value={newTransaction.walletId}
@@ -755,8 +773,9 @@ export default function HomePage() {
                     }))
                   }
                   className="w-full px-4 py-3 border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-700/80 text-white transition-all"
+                  required
                 >
-                  <option value="">Không chọn ví</option>
+                  <option value="">Chọn ví</option>
                   {wallets.map((wallet) => (
                     <option key={wallet._id} value={wallet._id}>
                       {wallet.icon} {wallet.name} (
@@ -949,183 +968,202 @@ export default function HomePage() {
             </div>
 
             <div className="space-y-4 px-6 pb-6 overflow-y-auto">
-              {/* Ngày giao dịch */}
-              <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
-                <div className="text-gray-200 text-sm mb-1 font-medium">
-                  Ngày giao dịch
-                </div>
-                <div className="text-white text-lg font-semibold">
-                  {formatDate(selectedTransaction.transactionDate)}
-                </div>
-              </div>
+              {(() => {
+                // Helper để check xem có phải giao dịch thu không
+                const isIncome =
+                  selectedTransaction.type === "transfer_in" ||
+                  selectedTransaction.categoryId?.type === "in" ||
+                  selectedTransaction.categoryName === "Rút tiết kiệm";
 
-              {/* Danh mục */}
-              <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
-                <div className="text-gray-200 text-sm mb-1 font-medium">
-                  Danh mục
-                </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      selectedTransaction.categoryId?.type === "in"
-                        ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                        : "bg-red-500/20 text-red-400 border border-red-500/30"
-                    }`}
-                  >
-                    {selectedTransaction.categoryId?.type === "in"
-                      ? "↑ Thu"
-                      : "↓ Chi"}
-                  </span>
-                  <span className="text-white text-lg font-semibold">
-                    {selectedTransaction.categoryId?.name || "N/A"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Số tiền */}
-              <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
-                <div className="text-gray-200 text-sm mb-1 font-medium">
-                  Số tiền
-                </div>
-                <div
-                  className={`text-2xl font-bold ${
-                    selectedTransaction.categoryId?.type === "in"
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }`}
-                >
-                  {selectedTransaction.categoryId?.type === "in" ? "+" : "-"}
-                  {formatCurrency(selectedTransaction.amount)}
-                </div>
-              </div>
-
-              {/* Thông tin ví */}
-              {selectedTransaction.type === "normal" &&
-                selectedTransaction.walletId && (
-                  <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
-                    <div className="text-gray-200 text-sm mb-1 font-medium">
-                      {selectedTransaction.categoryId?.type === "in"
-                        ? "Vào ví"
-                        : "Từ ví"}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">
-                        {(selectedTransaction.walletId as any)?.icon || "💰"}
-                      </span>
-                      <div>
-                        <div className="text-white font-semibold">
-                          {(selectedTransaction.walletId as any)?.name || "N/A"}
-                        </div>
-                        <div className="text-white/60 text-xs">
-                          {(selectedTransaction.walletId as any)?.type ===
-                          "cash"
-                            ? "Tiền mặt"
-                            : (selectedTransaction.walletId as any)?.type ===
-                                "bank"
-                              ? "Ngân hàng"
-                              : (selectedTransaction.walletId as any)?.type ===
-                                  "credit"
-                                ? "Thẻ tín dụng"
-                                : "Ví điện tử"}
-                        </div>
+                return (
+                  <>
+                    {/* Ngày giao dịch */}
+                    <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
+                      <div className="text-gray-200 text-sm mb-1 font-medium">
+                        Ngày giao dịch
+                      </div>
+                      <div className="text-white text-lg font-semibold">
+                        {formatDate(selectedTransaction.transactionDate)}
                       </div>
                     </div>
-                  </div>
-                )}
 
-              {/* Thông tin chuyển ví */}
-              {(selectedTransaction.type === "transfer_out" ||
-                selectedTransaction.type === "transfer_in") && (
-                <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border-2 border-blue-400/60 shadow-lg">
-                  <div className="text-blue-400 text-sm mb-3 font-semibold flex items-center gap-2">
-                    <span>🔄</span> Giao dịch chuyển ví
-                  </div>
-
-                  <div className="space-y-3">
-                    {/* Ví hiện tại */}
-                    <div>
-                      <div className="text-gray-200 text-xs mb-1 font-medium">
-                        {selectedTransaction.type === "transfer_out"
-                          ? "Từ ví"
-                          : "Đến ví"}
+                    {/* Danh mục */}
+                    <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
+                      <div className="text-gray-200 text-sm mb-1 font-medium">
+                        Danh mục
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xl">
-                          {(selectedTransaction.walletId as any)?.icon || "💰"}
+                        <span
+                          className={`px-3 py-1 text-xs font-medium rounded-full ${
+                            isIncome
+                              ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                              : "bg-red-500/20 text-red-400 border border-red-500/30"
+                          }`}
+                        >
+                          {isIncome ? "↑ Thu" : "↓ Chi"}
                         </span>
-                        <div>
-                          <div className="text-white font-semibold">
-                            {(selectedTransaction.walletId as any)?.name ||
-                              "N/A"}
-                          </div>
-                          <div className="text-white/60 text-xs">
-                            {(selectedTransaction.walletId as any)?.type ===
-                            "cash"
-                              ? "Tiền mặt"
-                              : (selectedTransaction.walletId as any)?.type ===
-                                  "bank"
-                                ? "Ngân hàng"
-                                : (selectedTransaction.walletId as any)
-                                      ?.type === "credit"
-                                  ? "Thẻ tín dụng"
-                                  : "Ví điện tử"}
-                          </div>
-                        </div>
+                        <span className="text-white text-lg font-semibold">
+                          {selectedTransaction.categoryId?.name ||
+                            selectedTransaction.categoryName ||
+                            "N/A"}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Mũi tên */}
-                    <div className="text-center text-white/40">
-                      {selectedTransaction.type === "transfer_out" ? "→" : "←"}
+                    {/* Số tiền */}
+                    <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
+                      <div className="text-gray-200 text-sm mb-1 font-medium">
+                        Số tiền
+                      </div>
+                      <div
+                        className={`text-2xl font-bold ${
+                          isIncome ? "text-green-400" : "text-red-400"
+                        }`}
+                      >
+                        {isIncome ? "+" : "-"}
+                        {formatCurrency(selectedTransaction.amount)}
+                      </div>
                     </div>
 
-                    {/* Ví liên quan */}
-                    {selectedTransaction.relatedWalletId && (
-                      <div>
-                        <div className="text-gray-200 text-xs mb-1 font-medium">
-                          {selectedTransaction.type === "transfer_out"
-                            ? "Đến ví"
-                            : "Từ ví"}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">
-                            {(selectedTransaction.relatedWalletId as any)
-                              ?.icon || "💰"}
-                          </span>
-                          <div>
-                            <div className="text-white font-semibold">
-                              {(selectedTransaction.relatedWalletId as any)
-                                ?.name || "N/A"}
-                            </div>
-                            <div className="text-white/60 text-xs">
-                              {(selectedTransaction.relatedWalletId as any)
-                                ?.type === "cash"
-                                ? "Tiền mặt"
-                                : (selectedTransaction.relatedWalletId as any)
-                                      ?.type === "bank"
-                                  ? "Ngân hàng"
-                                  : (selectedTransaction.relatedWalletId as any)
-                                        ?.type === "credit"
-                                    ? "Thẻ tín dụng"
-                                    : "Ví điện tử"}
+                    {/* Thông tin ví */}
+                    {selectedTransaction.type === "normal" &&
+                      selectedTransaction.walletId && (
+                        <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
+                          <div className="text-gray-200 text-sm mb-1 font-medium">
+                            {isIncome ? "Vào ví" : "Từ ví"}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">
+                              {(selectedTransaction.walletId as any)?.icon ||
+                                "💰"}
+                            </span>
+                            <div>
+                              <div className="text-white font-semibold">
+                                {(selectedTransaction.walletId as any)?.name ||
+                                  "N/A"}
+                              </div>
+                              <div className="text-white/60 text-xs">
+                                {(selectedTransaction.walletId as any)?.type ===
+                                "cash"
+                                  ? "Tiền mặt"
+                                  : (selectedTransaction.walletId as any)
+                                        ?.type === "bank"
+                                    ? "Ngân hàng"
+                                    : (selectedTransaction.walletId as any)
+                                          ?.type === "credit"
+                                      ? "Thẻ tín dụng"
+                                      : "Ví điện tử"}
+                              </div>
                             </div>
                           </div>
+                        </div>
+                      )}
+
+                    {/* Thông tin chuyển ví */}
+                    {(selectedTransaction.type === "transfer_out" ||
+                      selectedTransaction.type === "transfer_in") && (
+                      <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border-2 border-blue-400/60 shadow-lg">
+                        <div className="text-blue-400 text-sm mb-3 font-semibold flex items-center gap-2">
+                          <span>🔄</span> Giao dịch chuyển ví
+                        </div>
+
+                        <div className="space-y-3">
+                          {/* Ví hiện tại */}
+                          <div>
+                            <div className="text-gray-200 text-xs mb-1 font-medium">
+                              {selectedTransaction.type === "transfer_out"
+                                ? "Từ ví"
+                                : "Đến ví"}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl">
+                                {(selectedTransaction.walletId as any)?.icon ||
+                                  "💰"}
+                              </span>
+                              <div>
+                                <div className="text-white font-semibold">
+                                  {(selectedTransaction.walletId as any)
+                                    ?.name || "N/A"}
+                                </div>
+                                <div className="text-white/60 text-xs">
+                                  {(selectedTransaction.walletId as any)
+                                    ?.type === "cash"
+                                    ? "Tiền mặt"
+                                    : (selectedTransaction.walletId as any)
+                                          ?.type === "bank"
+                                      ? "Ngân hàng"
+                                      : (selectedTransaction.walletId as any)
+                                            ?.type === "credit"
+                                        ? "Thẻ tín dụng"
+                                        : "Ví điện tử"}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Mũi tên */}
+                          <div className="text-center text-white/40">
+                            {selectedTransaction.type === "transfer_out"
+                              ? "→"
+                              : "←"}
+                          </div>
+
+                          {/* Ví liên quan */}
+                          {selectedTransaction.relatedWalletId && (
+                            <div>
+                              <div className="text-gray-200 text-xs mb-1 font-medium">
+                                {selectedTransaction.type === "transfer_out"
+                                  ? "Đến ví"
+                                  : "Từ ví"}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl">
+                                  {(selectedTransaction.relatedWalletId as any)
+                                    ?.icon || "💰"}
+                                </span>
+                                <div>
+                                  <div className="text-white font-semibold">
+                                    {(
+                                      selectedTransaction.relatedWalletId as any
+                                    )?.name || "N/A"}
+                                  </div>
+                                  <div className="text-white/60 text-xs">
+                                    {(
+                                      selectedTransaction.relatedWalletId as any
+                                    )?.type === "cash"
+                                      ? "Tiền mặt"
+                                      : (
+                                            selectedTransaction.relatedWalletId as any
+                                          )?.type === "bank"
+                                        ? "Ngân hàng"
+                                        : (
+                                              selectedTransaction.relatedWalletId as any
+                                            )?.type === "credit"
+                                          ? "Thẻ tín dụng"
+                                          : "Ví điện tử"}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
-                  </div>
-                </div>
-              )}
 
-              {/* Ghi chú */}
-              {selectedTransaction.note && (
-                <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
-                  <div className="text-gray-200 text-sm mb-1 font-medium">
-                    Ghi chú
-                  </div>
-                  <div className="text-white">{selectedTransaction.note}</div>
-                </div>
-              )}
+                    {/* Ghi chú */}
+                    {selectedTransaction.note && (
+                      <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-4 rounded-xl border border-white/20 shadow-lg">
+                        <div className="text-gray-200 text-sm mb-1 font-medium">
+                          Ghi chú
+                        </div>
+                        <div className="text-white">
+                          {selectedTransaction.note}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             <div className="p-6 pt-4">

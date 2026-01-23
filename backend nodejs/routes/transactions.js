@@ -30,13 +30,22 @@ router.get("/", authMiddleware, async (req, res) => {
       filter.categoryId = categoryId;
     }
 
-    // Lọc theo type (in/out) - chỉ khi KHÔNG chọn categoryId cụ thể
+    // Lọc theo type (in/out) - bao gồm cả giao dịch không có categoryId
     if (type && ["in", "out"].includes(type) && !categoryId) {
       const categoryIds = await Category.find({ 
         userId: req.user.userId,
         type 
       }).distinct("_id");
-      filter.categoryId = { $in: categoryIds };
+      
+      // Filter bao gồm:
+      // - Transactions có categoryId thuộc type
+      // - Transfer transactions (transfer_in cho "in", transfer_out cho "out")
+      // - Savings transactions (categoryName = "Rút tiết kiệm" cho "in", "Tiết kiệm" cho "out")
+      filter.$or = [
+        { categoryId: { $in: categoryIds } },
+        { type: type === "in" ? "transfer_in" : "transfer_out" },
+        { categoryName: type === "in" ? "Rút tiết kiệm" : "Tiết kiệm" }
+      ];
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -117,14 +126,8 @@ router.post("/", authMiddleware, async (req, res) => {
 
     await transaction.save();
 
-    // Cập nhật số dư user
+    // Cập nhật số dư ví
     const balanceChange = category.type === "in" ? amount : -amount;
-    await User.findByIdAndUpdate(req.user.userId, {
-      $inc: { currentBalance: balanceChange },
-    });
-
-    // Cập nhật số dư ví
-    // Cập nhật số dư ví
     wallet.balance += balanceChange;
     await wallet.save();
 
@@ -150,15 +153,6 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     if (!transaction) {
       return res.status(404).json({ message: "Không tìm thấy giao dịch" });
     }
-
-    // Hoàn lại số dư user
-    const balanceChange = transaction.categoryId.type === "in" 
-      ? -transaction.amount 
-      : transaction.amount;
-    
-    await User.findByIdAndUpdate(req.user.userId, {
-      $inc: { currentBalance: balanceChange },
-    });
 
     // Hoàn lại số dư ví nếu có
     if (transaction.walletId) {

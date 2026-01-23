@@ -111,7 +111,6 @@ export const api = {
 export interface User {
   _id: string;
   username: string;
-  currentBalance: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -135,7 +134,8 @@ export interface Wallet {
 export interface Transaction {
   _id: string;
   userId: string;
-  categoryId: Category;
+  categoryId?: Category;
+  categoryName?: string; // Tên danh mục cho giao dịch hệ thống (transfer, savings)
   walletId?: any; // Wallet object hoặc ID
   amount: number;
   note?: string;
@@ -143,6 +143,7 @@ export interface Transaction {
   type?: "normal" | "transfer_out" | "transfer_in";
   transferId?: string;
   relatedWalletId?: any; // Wallet object hoặc ID
+  savingsGoalId?: string;
   createdAt: string;
 }
 

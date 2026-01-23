@@ -12,7 +12,13 @@ const transactionSchema = new mongoose.Schema(
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-      required: true,
+      required: false, // Không bắt buộc cho giao dịch hệ thống (transfer, savings)
+    },
+
+    // Tên danh mục cho giao dịch hệ thống (không dùng bảng Categories)
+    categoryName: {
+      type: String,
+      trim: true,
     },
 
     walletId: {
@@ -51,6 +57,12 @@ const transactionSchema = new mongoose.Schema(
     relatedWalletId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Wallet", // Ví đích (nếu transfer_out) hoặc ví nguồn (nếu transfer_in)
+    },
+
+    // Cho giao dịch tiết kiệm
+    savingsGoalId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SavingsGoal",
     },
   },
   { timestamps: true }

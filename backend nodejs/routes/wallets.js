@@ -153,36 +153,6 @@ router.post("/transfer", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Số dư ví nguồn không đủ" });
     }
 
-    // Tìm hoặc tạo 2 categories cho chuyển ví
-    let [transferOutCategory, transferInCategory] = await Promise.all([
-      Category.findOne({
-        userId: req.user.userId,
-        name: "Chuyển khoản (Ra)",
-        type: "out",
-      }),
-      Category.findOne({
-        userId: req.user.userId,
-        name: "Chuyển khoản (Vào)",
-        type: "in",
-      }),
-    ]);
-
-    if (!transferOutCategory) {
-      transferOutCategory = await Category.create({
-        userId: req.user.userId,
-        name: "Chuyển khoản (Ra)",
-        type: "out",
-      });
-    }
-
-    if (!transferInCategory) {
-      transferInCategory = await Category.create({
-        userId: req.user.userId,
-        name: "Chuyển khoản (Vào)",
-        type: "in",
-      });
-    }
-
     // Cập nhật số dư
     fromWallet.balance -= amount;
     toWallet.balance += amount;
@@ -194,24 +164,24 @@ router.post("/transfer", authMiddleware, async (req, res) => {
     const transferNote = note || `Chuyển từ ${fromWallet.name} sang ${toWallet.name}`;
     
     const [outTransaction, inTransaction] = await Promise.all([
-      // Transaction rút tiền từ ví nguồn (CHI)
+      // Transaction rút tiền từ ví nguồn (CHI) - không dùng categoryId
       Transaction.create({
         userId: req.user.userId,
-        categoryId: transferOutCategory._id,
         walletId: fromWalletId,
         amount: amount,
+        categoryName: "Chuyển khoản nội bộ",
         note: `${transferNote} (Chuyển ra)`,
         transactionDate: new Date(),
         type: "transfer_out",
         transferId: transferId,
         relatedWalletId: toWalletId, // Ví đích
       }),
-      // Transaction nhận tiền vào ví đích (THU)
+      // Transaction nhận tiền vào ví đích (THU) - không dùng categoryId
       Transaction.create({
         userId: req.user.userId,
-        categoryId: transferInCategory._id,
         walletId: toWalletId,
         amount: amount,
+        categoryName: "Chuyển khoản nội bộ",
         note: `${transferNote} (Nhận vào)`,
         transactionDate: new Date(),
         type: "transfer_in",

@@ -47,7 +47,6 @@ router.post("/register", async (req, res) => {
       user: {
         id: user._id,
         username: user.username,
-        currentBalance: user.currentBalance,
       },
     });
   } catch (error) {
@@ -91,7 +90,6 @@ router.post("/login", async (req, res) => {
       user: {
         id: user._id,
         username: user.username,
-        currentBalance: user.currentBalance,
       },
     });
   } catch (error) {

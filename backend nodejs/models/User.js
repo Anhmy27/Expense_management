@@ -30,11 +30,6 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
     },
-
-    currentBalance: {
-      type: Number,
-      default: 0,
-    },
   },
   { timestamps: true }
 );

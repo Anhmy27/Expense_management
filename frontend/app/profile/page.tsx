@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/useAuth";
-import { api, User } from "@/lib/api";
+import { api, User, Wallet } from "@/lib/api";
 
 export default function ProfilePage() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
 
   const [user, setUser] = useState<User | null>(null);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -25,8 +26,12 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const userData = await api.getProfile();
+        const [userData, walletsData] = await Promise.all([
+          api.getProfile(),
+          api.getWallets(),
+        ]);
         setUser(userData);
+        setWallets(walletsData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
       } finally {
@@ -174,16 +179,16 @@ export default function ProfilePage() {
 
             <div className="flex justify-between items-center py-3 border-b border-gray-200 dark:border-gray-700">
               <span className="text-gray-600 dark:text-gray-400">
-                Số dư hiện tại
+                Tổng số dư (từ ví)
               </span>
               <span
                 className={`font-bold text-lg ${
-                  (user?.currentBalance || 0) >= 0
+                  wallets.reduce((sum, w) => sum + w.balance, 0) >= 0
                     ? "text-green-600"
                     : "text-red-600"
                 }`}
               >
-                {formatCurrency(user?.currentBalance || 0)}
+                {formatCurrency(wallets.reduce((sum, w) => sum + w.balance, 0))}
               </span>
             </div>
 
