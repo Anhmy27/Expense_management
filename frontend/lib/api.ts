@@ -105,6 +105,22 @@ export const api = {
 
   // Wallets
   getWallets: () => request<Wallet[]>("/wallets"),
+
+  // Dashboard - Gộp tất cả API cho homepage
+  getDashboard: (params?: TransactionFilters) => {
+    const searchParams = new URLSearchParams();
+    if (params?.startDate) searchParams.append("startDate", params.startDate);
+    if (params?.endDate) searchParams.append("endDate", params.endDate);
+    if (params?.categoryId) searchParams.append("categoryId", params.categoryId);
+    if (params?.walletId) searchParams.append("walletId", params.walletId);
+    if (params?.type) searchParams.append("type", params.type);
+    if (params?.search) searchParams.append("search", params.search);
+    if (params?.page) searchParams.append("page", params.page.toString());
+    if (params?.limit) searchParams.append("limit", params.limit.toString());
+    
+    const queryString = searchParams.toString();
+    return request<DashboardResponse>(`/dashboard${queryString ? `?${queryString}` : ""}`);
+  },
 };
 
 // Types
@@ -151,7 +167,9 @@ export interface TransactionFilters {
   startDate?: string;
   endDate?: string;
   categoryId?: string;
+  walletId?: string;
   type?: "in" | "out";
+  search?: string;
   page?: number;
   limit?: number;
 }
@@ -197,4 +215,29 @@ export interface StatisticsResponse {
     totalExpense: number;
     balance: number;
   };
+}
+
+export interface Budget {
+  _id: string;
+  categoryId: Category;
+  amount: number;
+  spent: number;
+  percentage: number;
+  remaining: number;
+  isWarning: boolean;
+  isExceeded: boolean;
+}
+
+export interface DashboardResponse {
+  user: User;
+  transactions: Transaction[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  categories: Category[];
+  budgetAlerts: Budget[];
+  wallets: Wallet[];
 }

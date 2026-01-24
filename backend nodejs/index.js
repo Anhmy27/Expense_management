@@ -16,6 +16,7 @@ import oauthRoutes from "./routes/oauth.js";
 import budgetRoutes from "./routes/budgets.js";
 import walletRoutes from "./routes/wallets.js";
 import savingsGoalRoutes from "./routes/savingsGoals.js";
+import dashboardRoutes from "./routes/dashboard.js";
 
 // Validate environment variables
 if (!process.env.MONGODB_URI) {
@@ -50,6 +51,7 @@ app.use("/api/statistics", statisticsRoutes);
 app.use("/api/budgets", budgetRoutes);
 app.use("/api/wallets", walletRoutes);
 app.use("/api/savings-goals", savingsGoalRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

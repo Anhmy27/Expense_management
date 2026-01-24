@@ -79,39 +79,21 @@ export default function HomePage() {
       const isInitialLoad = transactions.length === 0;
       if (isInitialLoad) {
         setLoading(true);
+        // Initial load: Dùng Dashboard API - gộp 5 requests thành 1
+        const dashboardData = await api.getDashboard(filters);
+
+        setUser(dashboardData.user);
+        setTransactions(dashboardData.transactions);
+        setPagination(dashboardData.pagination);
+        setCategories(dashboardData.categories);
+        setBudgetAlerts(dashboardData.budgetAlerts);
+        setWallets(dashboardData.wallets);
       } else {
         setFetching(true);
-      }
-
-      const token = localStorage.getItem("token");
-      const [userRes, transRes, catRes, budgetsRes, walletsRes] =
-        await Promise.all([
-          api.getProfile(),
-          api.getTransactions(filters),
-          api.getCategories(),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/budgets/active`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallets`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
-
-      setUser(userRes);
-      setTransactions(transRes.transactions);
-      setPagination(transRes.pagination);
-      setCategories(catRes);
-
-      if (budgetsRes.ok) {
-        const budgets = await budgetsRes.json();
-        setBudgetAlerts(
-          budgets.filter((b: any) => b.isWarning || b.isExceeded),
-        );
-      }
-
-      if (walletsRes.ok) {
-        const walletsData = await walletsRes.json();
-        setWallets(walletsData);
+        // Filter changes: Chỉ fetch transactions (categories, wallets không đổi)
+        const transRes = await api.getTransactions(filters);
+        setTransactions(transRes.transactions);
+        setPagination(transRes.pagination);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
