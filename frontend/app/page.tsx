@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/useAuth";
 import Toast from "@/components/Toast";
 import ConfirmModal from "@/components/ConfirmModal";
+import NotificationIcon from "@/components/NotificationIcon";
 import {
   api,
   Transaction,
@@ -20,7 +21,6 @@ export default function HomePage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [wallets, setWallets] = useState<any[]>([]);
-  const [budgetAlerts, setBudgetAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false); // Loading khi filter
   const [error, setError] = useState("");
@@ -73,11 +73,12 @@ export default function HomePage() {
 
   // Debounce timer for date inputs
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const isInitialLoadDone = useRef(false);
+  const notificationRefreshTrigger = useRef<(() => void) | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const isInitialLoad = transactions.length === 0;
-      if (isInitialLoad) {
+      if (!isInitialLoadDone.current) {
         setLoading(true);
         // Initial load: Dùng Dashboard API - gộp 5 requests thành 1
         const dashboardData = await api.getDashboard(filters);
@@ -86,8 +87,8 @@ export default function HomePage() {
         setTransactions(dashboardData.transactions);
         setPagination(dashboardData.pagination);
         setCategories(dashboardData.categories);
-        setBudgetAlerts(dashboardData.budgetAlerts);
         setWallets(dashboardData.wallets);
+        isInitialLoadDone.current = true;
       } else {
         setFetching(true);
         // Filter changes: Chỉ fetch transactions (categories, wallets không đổi)
@@ -101,7 +102,7 @@ export default function HomePage() {
       setLoading(false);
       setFetching(false);
     }
-  }, [filters, transactions.length]);
+  }, [filters]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -141,6 +142,10 @@ export default function HomePage() {
         transactionDate: new Date().toISOString().split("T")[0],
       });
       fetchData();
+      // Refresh notifications
+      if (notificationRefreshTrigger.current) {
+        notificationRefreshTrigger.current();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
     }
@@ -275,6 +280,11 @@ export default function HomePage() {
                 {formatCurrency(wallets.reduce((sum, w) => sum + w.balance, 0))}
               </span>
             </div>
+            <NotificationIcon
+              onRegisterRefresh={(refreshFn: () => void) => {
+                notificationRefreshTrigger.current = refreshFn;
+              }}
+            />
             <Link
               href="/statistics"
               className="gradient-primary text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
@@ -316,53 +326,6 @@ export default function HomePage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 animate-fadeIn">
-        {/* Budget Alerts */}
-        {budgetAlerts.length > 0 && (
-          <div className="mb-6 space-y-3">
-            {budgetAlerts.map((budget) => (
-              <div
-                key={budget._id}
-                className={`glass border ${
-                  budget.isExceeded
-                    ? "border-red-500/50 bg-red-500/10"
-                    : "border-yellow-500/50 bg-yellow-500/10"
-                } px-4 py-3 rounded-xl animate-scaleIn`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">
-                      {budget.isExceeded ? "🚨" : "⚠️"}
-                    </span>
-                    <div>
-                      <p
-                        className={`font-semibold ${
-                          budget.isExceeded ? "text-red-400" : "text-yellow-400"
-                        }`}
-                      >
-                        {budget.isExceeded
-                          ? "Vượt ngân sách!"
-                          : "Cảnh báo ngân sách"}
-                      </p>
-                      <p className="text-sm text-gray-300">
-                        <strong>{budget.categoryId.name}</strong>: Đã chi{" "}
-                        {budget.spent.toLocaleString("vi-VN")}₫ /{" "}
-                        {budget.amount.toLocaleString("vi-VN")}₫ (
-                        {budget.percentage}%)
-                      </p>
-                    </div>
-                  </div>
-                  <Link
-                    href="/budgets"
-                    className="text-sm text-blue-400 hover:text-blue-300 underline"
-                  >
-                    Xem chi tiết
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
         {error && (
           <div className="glass border border-red-500/50 text-red-400 px-4 py-3 rounded-xl mb-4 animate-scaleIn">
             <div className="flex items-center justify-between">

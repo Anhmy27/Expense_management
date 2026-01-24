@@ -4,6 +4,7 @@ import Category from "../models/Category.js";
 import User from "../models/User.js";
 import Wallet from "../models/Wallet.js";
 import authMiddleware from "../middleware/auth.js";
+import { checkBudgetNotifications } from "../utils/notificationHelper.js";
 
 const router = express.Router();
 
@@ -130,6 +131,11 @@ router.post("/", authMiddleware, async (req, res) => {
     const balanceChange = category.type === "in" ? amount : -amount;
     wallet.balance += balanceChange;
     await wallet.save();
+
+    // Kiểm tra budget notifications (real-time)
+    if (category.type === "out") {
+      checkBudgetNotifications(req.user.userId, categoryId, amount);
+    }
 
     const populatedTransaction = await Transaction.findById(transaction._id)
       .populate("categoryId", "name type")

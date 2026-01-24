@@ -3,6 +3,7 @@ import SavingsGoal from "../models/SavingsGoal.js";
 import Wallet from "../models/Wallet.js";
 import Transaction from "../models/Transaction.js";
 import authMiddleware from "../middleware/auth.js";
+import { checkSavingsNotifications } from "../utils/notificationHelper.js";
 
 const router = express.Router();
 
@@ -183,6 +184,9 @@ router.post("/:id/contribute", authMiddleware, async (req, res) => {
     }
     
     await goal.save();
+
+    // Kiểm tra savings notifications (real-time)
+    checkSavingsNotifications(req.user.userId, goal._id);
 
     res.json({
       goal,

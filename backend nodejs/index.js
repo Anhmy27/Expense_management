@@ -17,6 +17,7 @@ import budgetRoutes from "./routes/budgets.js";
 import walletRoutes from "./routes/wallets.js";
 import savingsGoalRoutes from "./routes/savingsGoals.js";
 import dashboardRoutes from "./routes/dashboard.js";
+import notificationRoutes from "./routes/notifications.js";
 
 // Validate environment variables
 if (!process.env.MONGODB_URI) {
@@ -52,6 +53,7 @@ app.use("/api/budgets", budgetRoutes);
 app.use("/api/wallets", walletRoutes);
 app.use("/api/savings-goals", savingsGoalRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

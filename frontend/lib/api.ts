@@ -121,6 +121,23 @@ export const api = {
     const queryString = searchParams.toString();
     return request<DashboardResponse>(`/dashboard${queryString ? `?${queryString}` : ""}`);
   },
+
+  // Notifications
+  getNotifications: () => request<Notification[]>("/notifications"),
+  
+  getUnreadCount: () => request<{ count: number }>("/notifications/unread-count"),
+  
+  markAsRead: (id: string) => 
+    request<Notification>(`/notifications/${id}/read`, { method: "PUT" }),
+  
+  markAllAsRead: () => 
+    request<{ message: string }>("/notifications/read-all", { method: "PUT" }),
+  
+  deleteNotification: (id: string) => 
+    request<{ message: string }>(`/notifications/${id}`, { method: "DELETE" }),
+  
+  deleteAllRead: () => 
+    request<{ message: string }>("/notifications", { method: "DELETE" }),
 };
 
 // Types
@@ -240,4 +257,19 @@ export interface DashboardResponse {
   categories: Category[];
   budgetAlerts: Budget[];
   wallets: Wallet[];
+}
+
+export interface Notification {
+  _id: string;
+  userId: string;
+  type: "BUDGET_WARNING" | "BUDGET_EXCEEDED" | "SAVINGS_MILESTONE" | "SAVINGS_COMPLETED" | "DEADLINE_REMINDER";
+  title: string;
+  message: string;
+  relatedId: string;
+  relatedType: "budget" | "savingsGoal";
+  data: any;
+  isRead: boolean;
+  createdAt: string;
+  updatedAt: string;
+  expiresAt: string;
 }
