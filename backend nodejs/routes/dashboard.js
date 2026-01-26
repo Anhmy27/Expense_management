@@ -61,8 +61,8 @@ router.get("/", authMiddleware, async (req, res) => {
         // 3. Total count for pagination
         Transaction.countDocuments(filters),
 
-        // 4. Categories
-        Category.find({ userId }).sort({ name: 1 }),
+        // 4. Categories (only active)
+        Category.find({ userId, isActive: { $ne: false } }).sort({ name: 1 }),
 
         // 5. Active budgets with spent calculation
         (async () => {
