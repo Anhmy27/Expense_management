@@ -1,6 +1,5 @@
 import express from "express";
 import Transaction from "../models/Transaction.js";
-import Category from "../models/Category.js";
 import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
@@ -10,11 +9,6 @@ router.get("/", authMiddleware, async (req, res) => {
   try {
     const { year, period = "month", walletId } = req.query;
     const selectedYear = parseInt(year) || new Date().getFullYear();
-
-    // Lấy tất cả categories của user hiện tại
-    const categories = await Category.find({ userId: req.user.userId });
-    const inCategories = categories.filter((c) => c.type === "in");
-    const outCategories = categories.filter((c) => c.type === "out");
 
     // Thời gian bắt đầu và kết thúc của năm
     const startOfYear = new Date(selectedYear, 0, 1);
@@ -98,24 +92,25 @@ router.get("/", authMiddleware, async (req, res) => {
       }));
     }
 
-    // Thống kê theo category
+    // Thống kê theo category - Build từ transactions thực tế (bao gồm cả categories đã ẩn)
     const categoryIncome = {};
     const categoryExpense = {};
-
-    inCategories.forEach((c) => {
-      categoryIncome[c._id.toString()] = { name: c.name, value: 0 };
-    });
-
-    outCategories.forEach((c) => {
-      categoryExpense[c._id.toString()] = { name: c.name, value: 0 };
-    });
 
     transactions.forEach((t) => {
       if (t.categoryId) {
         const catId = t.categoryId._id.toString();
-        if (t.categoryId.type === "in" && categoryIncome[catId]) {
+        const catName = t.categoryId.name;
+        const catType = t.categoryId.type;
+        
+        if (catType === "in") {
+          if (!categoryIncome[catId]) {
+            categoryIncome[catId] = { name: catName, value: 0 };
+          }
           categoryIncome[catId].value += t.amount;
-        } else if (t.categoryId.type === "out" && categoryExpense[catId]) {
+        } else if (catType === "out") {
+          if (!categoryExpense[catId]) {
+            categoryExpense[catId] = { name: catName, value: 0 };
+          }
           categoryExpense[catId].value += t.amount;
         }
       }
