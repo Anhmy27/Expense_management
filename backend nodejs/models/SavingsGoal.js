@@ -62,9 +62,9 @@ savingsGoalSchema.index({ userId: 1, status: 1 });
 
 // Virtual để tính phần trăm hoàn thành (dựa trên tổng đã đóng góp)
 savingsGoalSchema.virtual("percentage").get(function () {
+  if (this.status === "completed") return 100;
   if (this.targetAmount === 0) return 0;
-  const totalContributed = this.currentAmount + this.withdrawnAmount;
-  return Math.min(Math.round((totalContributed / this.targetAmount) * 100), 100);
+  return Math.min(Math.round((this.currentAmount / this.targetAmount) * 100), 100);
 });
 
 // Virtual để tính tổng đã đóng góp

@@ -254,13 +254,22 @@ router.post("/:id/withdraw", authMiddleware, async (req, res) => {
     wallet.balance += amount;
     await wallet.save();
 
-    // Cộng vào số tiền đã rút, giữ nguyên currentAmount
+    // Cộng vào số tiền đã rút, giảm currentAmount
     goal.withdrawnAmount += amount;
     goal.currentAmount -= amount;
-    
-    // Không thay đổi trạng thái nếu đã hoàn thành - để user tự quản lý
-    
+
+    // Lưu lại giá trị percentage trước khi rút
+    const prevPercentage = Math.min(Math.round(((goal.currentAmount + amount) / goal.targetAmount) * 100), 100);
     await goal.save();
+
+    // Nếu goal đang active và percentage giảm xuống dưới milestone thì xóa notification milestone
+    if (goal.status === "active") {
+      const newPercentage = Math.min(Math.round((goal.currentAmount / goal.targetAmount) * 100), 100);
+      if ((prevPercentage >= 75 && newPercentage < 75) || (prevPercentage >= 50 && newPercentage < 50)) {
+        const { removeNotification } = await import("../utils/notificationHelper.js");
+        await removeNotification(req.user.userId, "SAVINGS_MILESTONE", goal._id);
+      }
+    }
 
     // Kiểm tra savings notifications sau khi rút tiền
     checkSavingsNotifications(req.user.userId, goal._id);
