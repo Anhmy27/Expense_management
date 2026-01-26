@@ -141,13 +141,30 @@ export default function HomePage() {
         note: "",
         transactionDate: new Date().toISOString().split("T")[0],
       });
+      
+      // Refresh wallets to update total balance
+      console.log("Refreshing wallets after transaction...");
+      const walletsRes = await api.getWallets();
+      console.log("New wallets data:", walletsRes);
+      setWallets(walletsRes);
+      
+      // Refresh transactions
       fetchData();
+      
       // Refresh notifications
       if (notificationRefreshTrigger.current) {
         notificationRefreshTrigger.current();
       }
+      
+      setToast({
+        message: "Tạo giao dịch thành công!",
+        type: "success",
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
+      setToast({
+        message: err instanceof Error ? err.message : "Có lỗi xảy ra",
+        type: "error",
+      });
     }
   };
 
@@ -192,6 +209,9 @@ export default function HomePage() {
             type: "success",
           });
           fetchData();
+          // Refresh wallets to update total balance
+          const walletsRes = await api.getWallets();
+          setWallets(walletsRes);
         } catch (err) {
           setToast({
             message:
