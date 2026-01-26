@@ -3,8 +3,9 @@ import Transaction from "../models/Transaction.js";
 import Category from "../models/Category.js";
 import User from "../models/User.js";
 import Wallet from "../models/Wallet.js";
+import SavingsGoal from "../models/SavingsGoal.js";
 import authMiddleware from "../middleware/auth.js";
-import { checkBudgetNotifications } from "../utils/notificationHelper.js";
+import { checkBudgetNotifications, checkSavingsNotifications } from "../utils/notificationHelper.js";
 
 const router = express.Router();
 
@@ -165,9 +166,15 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy giao dịch" });
     }
 
+    // Lưu thông tin để check notifications sau
+    const categoryId = transaction.categoryId?._id;
+    const userId = transaction.userId;
+    const amount = transaction.amount;
+    const savingsGoalId = transaction.savingsGoalId;
+
     // Hoàn lại số dư ví nếu có
     if (transaction.walletId) {
-      const walletChange = transaction.categoryId.type === "in"
+      const walletChange = transaction.categoryId?.type === "in"
         ? -transaction.amount
         : transaction.amount;
       await Wallet.findByIdAndUpdate(transaction.walletId._id, {
@@ -175,7 +182,39 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       });
     }
 
+    // Nếu là transaction của savings goal - cập nhật currentAmount
+    if (savingsGoalId) {
+      const goal = await SavingsGoal.findById(savingsGoalId);
+      if (goal) {
+        // Nếu là đóng góp (categoryName = "Tiết kiệm") → trừ currentAmount
+        if (transaction.categoryName === "Tiết kiệm") {
+          goal.currentAmount -= amount;
+        }
+        // Nếu là rút tiền (categoryName = "Rút tiết kiệm") → cộng lại currentAmount
+        else if (transaction.categoryName === "Rút tiết kiệm") {
+          goal.currentAmount += amount;
+          goal.withdrawnAmount -= amount;
+        }
+        
+        // Nếu đã completed mà currentAmount giảm xuống → chuyển về active
+        if (goal.status === "completed" && goal.currentAmount < goal.targetAmount) {
+          goal.status = "active";
+          goal.completedAt = null;
+        }
+        
+        await goal.save();
+        
+        // Check savings notifications sau khi cập nhật
+        await checkSavingsNotifications(userId, savingsGoalId);
+      }
+    }
+
     await Transaction.findByIdAndDelete(req.params.id);
+
+    // Kiểm tra và cập nhật budget notifications sau khi xóa
+    if (categoryId) {
+      await checkBudgetNotifications(userId, categoryId, -amount); // Truyền số âm để trừ spent
+    }
 
     res.json({ message: "Xóa giao dịch thành công" });
   } catch (error) {

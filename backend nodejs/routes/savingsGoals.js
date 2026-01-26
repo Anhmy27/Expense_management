@@ -262,6 +262,9 @@ router.post("/:id/withdraw", authMiddleware, async (req, res) => {
     
     await goal.save();
 
+    // Kiểm tra savings notifications sau khi rút tiền
+    checkSavingsNotifications(req.user.userId, goal._id);
+
     res.json({
       goal,
       transaction: await transaction.populate("walletId"),
