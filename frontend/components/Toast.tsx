@@ -39,7 +39,7 @@ export default function Toast({
 
   return (
     <div
-      className={`fixed top-20 right-4 z-50 ${styles[type]} text-white px-6 py-4 rounded-xl shadow-2xl border-2 animate-slideIn backdrop-blur-lg flex items-center gap-3 min-w-[300px]`}
+      className={`fixed top-20 right-4 z-[9999] ${styles[type]} text-white px-6 py-4 rounded-xl shadow-2xl border-2 animate-slideIn backdrop-blur-lg flex items-center gap-3 min-w-[300px]`}
     >
       <span className="text-2xl">{icons[type]}</span>
       <p className="flex-1 font-medium">{message}</p>

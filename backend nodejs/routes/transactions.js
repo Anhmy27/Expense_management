@@ -11,7 +11,7 @@ const router = express.Router();
 // Lấy danh sách giao dịch với bộ lọc
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const { startDate, endDate, categoryId, type, page = 1, limit = 20 } = req.query;
+    const { startDate, endDate, categoryId, walletId, type, page = 1, limit = 20 } = req.query;
     
     const filter = { userId: req.user.userId };
 
@@ -29,6 +29,11 @@ router.get("/", authMiddleware, async (req, res) => {
     // Lọc theo category
     if (categoryId) {
       filter.categoryId = categoryId;
+    }
+
+    // Lọc theo wallet
+    if (walletId) {
+      filter.walletId = walletId;
     }
 
     // Lọc theo type (in/out) - bao gồm cả giao dịch không có categoryId

@@ -164,8 +164,15 @@ export default function HomePage() {
       setCategories(catRes);
       setShowCategoryModal(false);
       setNewCategory({ name: "", type: "out" });
+      setToast({
+        message: "Tạo danh mục thành công!",
+        type: "success",
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Có lỗi xảy ra");
+      setToast({
+        message: err instanceof Error ? err.message : "Có lỗi xảy ra",
+        type: "error",
+      });
     }
   };
 
@@ -268,10 +275,10 @@ export default function HomePage() {
             <h1 className="text-xl font-bold text-white">Quản lý chi tiêu</h1>
           </div>
           <div className="flex items-center gap-3">
-            <div className="glass px-4 py-2 rounded-xl">
-              <span className="text-white/70 text-sm">Tổng số dư: </span>
+            <div className="flex flex-col items-center px-4 py-2">
+              <span className="text-white/70 text-xs">Tổng số dư</span>
               <span
-                className={`font-bold ${
+                className={`font-bold text-lg whitespace-nowrap ${
                   wallets.reduce((sum, w) => sum + w.balance, 0) >= 0
                     ? "text-green-400"
                     : "text-red-400"
@@ -285,39 +292,46 @@ export default function HomePage() {
                 notificationRefreshTrigger.current = refreshFn;
               }}
             />
+
             <Link
               href="/statistics"
-              className="gradient-primary text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
+              className="gradient-primary text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all whitespace-nowrap"
             >
               📊 Thống kê
             </Link>
             <Link
+              href="/categories"
+              className="bg-purple-600 text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all whitespace-nowrap"
+            >
+              🏷️ Danh mục
+            </Link>
+            <Link
               href="/budgets"
-              className="gradient-success text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
+              className="gradient-success text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all whitespace-nowrap"
             >
               💰 Ngân sách
             </Link>
             <Link
               href="/wallets"
-              className="gradient-info text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
+              className="gradient-info text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all whitespace-nowrap"
             >
               👛 Ví
             </Link>
             <Link
               href="/savings"
-              className="gradient-warning text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
+              className="gradient-warning text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all whitespace-nowrap"
             >
               🎯 Tiết kiệm
             </Link>
             <Link
               href="/profile"
-              className="glass text-white px-4 py-2 rounded-xl hover:bg-white/20 transition-all"
+              className="glass text-white px-4 py-2 rounded-xl hover:bg-white/20 transition-all whitespace-nowrap"
             >
               👤 Tài khoản
             </Link>
             <button
               onClick={logout}
-              className="gradient-danger text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all"
+              className="gradient-danger text-white px-4 py-2 rounded-xl hover-lift btn-gradient font-medium transition-all whitespace-nowrap"
             >
               Đăng xuất
             </button>

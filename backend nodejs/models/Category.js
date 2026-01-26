@@ -20,6 +20,12 @@ const categorySchema = new mongoose.Schema(
       enum: ["in", "out"],
       required: true,
     },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
   },
   { timestamps: true }
 );
